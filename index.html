@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Caça-Palavras Premium + Ranking Nacional</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+        --bg:#f8fafc;
+        --card:#ffffff;
+        --primary:#1e3a8a;
+        --accent:#3b82f6;
+        --muted:#64748b;
+        --success:#10b981;
+        --warning:#f59e0b;
+        --danger:#ef4444;
+        --border:#e2e8f0;
+        --shadow:rgba(30,58,138,0.08);
+    }
+    
+    *{box-sizing:border-box;margin:0;padding:0}
+    
+    body{
+        font-family:'Inter', sans-serif;
+        background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height:100vh;
+        padding:20px;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:25px;
+    }
+    
+    .container{width:100%;max-width:1200px}
+    
+    header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        margin-bottom:10px;
+        background:rgba(255,255,255,0.95);
+        backdrop-filter:blur(10px);
+        padding:20px;
+        border-radius:16px;
+        box-shadow:0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    h1{
+        font-size:1.8rem;
+        color:var(--primary);
+        font-weight:800;
+        background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+        background-clip:text;
+    }
+    
+    h2{font-size:1.25rem;color:var(--primary);font-weight:700}
+    
+    .card{
+        background:rgba(255,255,255,0.95);
+        backdrop-filter:blur(10px);
+        border-radius:20px;
+        padding:25px;
+        box-shadow:0 20px 60px rgba(0,0,0,0.3);
+        border:1px solid rgba(255,255,255,0.5);
+    }
+    
+    form{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+    
+    label{
+        font-size:0.9rem;
+        color:var(--primary);
+        font-weight:600;
+        margin-bottom:5px;
+        display:block;
+    }
+    
+    input,button,select{
+        padding:12px 15px;
+        border-radius:10px;
+        border:2px solid var(--border);
+        font-size:0.95rem;
+        transition:all 0.3s ease;
+        font-family:'Inter', sans-serif;
+    }
+    
+    input:focus {
+        border-color:var(--accent);
+        outline:none;
+        box-shadow:0 0 0 3px rgba(59, 130, 246, 0.2);
+        transform:translateY(-2px);
+    }
+    
+    button {
+        cursor:pointer;
+        font-weight:600;
+        white-space:nowrap;
+        transition:all 0.3s ease;
+        border:none;
+    }
+    
+    button:hover{
+        transform:translateY(-2px);
+        box-shadow:0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    button:active{transform:translateY(0)}
+    
+    .full{grid-column:1/-1}
+    
+    .controls{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+    
+    .controls button:first-child {
+        background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color:white;
+        padding:12px 24px;
+        font-size:1rem;
+    }
+    
+    .controls button:not(:first-child) {
+        background:#f1f5f9;
+        color:var(--primary);
+    }
+
+    .counter{
+        font-weight:600;
+        color:white;
+        background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding:10px 20px;
+        border-radius:12px;
+        box-shadow:0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .game-area{
+        margin-top:0;
+        display:grid;
+        grid-template-columns:2fr 1fr;
+        gap:25px;
+    }
+
+    .grid{
+        display:grid;
+        gap:4px;
+        justify-content:center;
+        padding:20px;
+        background:rgba(255,255,255,0.5);
+        border-radius:16px;
+    }
+    
+    .cell{
+        width:40px;
+        height:40px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        border-radius:8px;
+        background:linear-gradient(135deg, #eef6ff 0%, #dbeafe 100%);
+        color:var(--primary);
+        font-weight:700;
+        font-size:1.1rem;
+        user-select:none;
+        cursor:pointer;
+        transition:all 0.2s ease;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .cell:hover {
+        background:linear-gradient(135deg, #dbeafe 0%, #93c5fd 100%);
+        transform:scale(1.1);
+        box-shadow:0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    
+    .cell.selecting{
+        background:linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+        color:white;
+        transform:scale(1.1);
+        animation:pulse 0.5s ease-in-out;
+    }
+    
+    .cell.found{
+        background:linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color:#fff;
+        animation:found 0.5s ease-in-out;
+    }
+    
+    @keyframes pulse{
+        0%, 100%{transform:scale(1.1)}
+        50%{transform:scale(1.2)}
+    }
+    
+    @keyframes found{
+        0%{transform:scale(1) rotate(0deg)}
+        25%{transform:scale(1.3) rotate(-10deg)}
+        50%{transform:scale(1.2) rotate(10deg)}
+        75%{transform:scale(1.3) rotate(-5deg)}
+        100%{transform:scale(1) rotate(0deg)}
+    }
+
+    .words-list{
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+        margin-top:15px;
+    }
+    
+    .word{
+        padding:10px 16px;
+        border-radius:25px;
+        background:linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border:2px solid var(--border);
+        font-size:0.9rem;
+        font-weight:600;
+        transition:all 0.3s ease;
+        cursor:default;
+    }
+    
+    .word:hover{transform:translateY(-2px)}
+    
+    .word.found{
+        background:linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color:#fff;
+        border-color:transparent;
+        text-decoration:line-through;
+        animation:wordFound 0.6s ease-in-out;
+    }
+    
+    @keyframes wordFound{
+        0%{transform:scale(1)}
+        50%{transform:scale(1.2) rotate(5deg)}
+        100%{transform:scale(1)}
+    }
+
+    .game-header {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:20px;
+        padding-bottom:15px;
+        border-bottom:2px solid var(--border);
+    }
+    
+    .game-stats {
+        display:flex;
+        gap:15px;
+        font-size:1rem;
+        font-weight:600;
+        flex-wrap:wrap;
+    }
+    
+    .stat-badge{
+        background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+        padding:8px 16px;
+        border-radius:20px;
+        display:flex;
+        align-items:center;
+        gap:5px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .progress-bar{
+        width:100%;
+        height:8px;
+        background:#e2e8f0;
+        border-radius:10px;
+        overflow:hidden;
+        margin:15px 0;
+    }
+    
+    .progress-fill{
+        height:100%;
+        background:linear-gradient(90deg, #10b981 0%, #059669 100%);
+        transition:width 0.5s ease;
+        border-radius:10px;
+    }
+
+    .leaderboard-list{
+        margin-top:15px;
+        padding:0;
+        list-style:none;
+    }
+    
+    .leaderboard-item{
+        padding:15px;
+        border-bottom:1px solid var(--border);
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        transition:all 0.3s ease;
+    }
+    
+    .leaderboard-item:hover{
+        background:rgba(59, 130, 246, 0.05);
+        transform:translateX(5px);
+    }
+    
+    .leaderboard-item:nth-child(1){
+        font-weight:700;
+        background:linear-gradient(135deg, rgba(255,193,7,0.2) 0%, rgba(255,152,0,0.2) 100%);
+        border-radius:10px;
+        border:2px solid rgba(255,193,7,0.5);
+    }
+    
+    .leaderboard-item:nth-child(2){
+        background:rgba(192,192,192,0.15);
+        border-radius:8px;
+    }
+    
+    .leaderboard-item:nth-child(3){
+        background:rgba(205,127,50,0.15);
+        border-radius:8px;
+    }
+    
+    .time{
+        color:var(--accent);
+        font-weight:700;
+        font-size:1.1rem;
+    }
+    
+    .name{
+        font-weight:600;
+        color:var(--primary);
+    }
+    
+    .game-controls{
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+    }
+    
+    .game-controls button{
+        padding:8px 16px;
+        font-size:0.9rem;
+        border-radius:8px;
+    }
+    
+    .btn-pause{
+        background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color:white;
+    }
+    
+    .btn-hint{
+        background:linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color:white;
+    }
+    
+    .btn-reset{
+        background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color:white;
+    }
+    
+    .toast{
+        position:fixed;
+        top:20px;
+        right:20px;
+        background:linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color:white;
+        padding:15px 25px;
+        border-radius:12px;
+        box-shadow:0 10px 40px rgba(0,0,0,0.3);
+        animation:slideIn 0.3s ease-in-out;
+        z-index:1000;
+        font-weight:600;
+    }
+    
+    @keyframes slideIn{
+        from{transform:translateX(400px);opacity:0}
+        to{transform:translateX(0);opacity:1}
+    }
+    
+    .particles{
+        position:fixed;
+        pointer-events:none;
+        z-index:999;
+    }
+    
+    .particle{
+        position:absolute;
+        width:10px;
+        height:10px;
+        background:var(--accent);
+        border-radius:50%;
+        animation:explode 0.8s ease-out forwards;
+    }
+    
+    @keyframes explode{
+        to{
+            transform:translate(var(--tx), var(--ty));
+            opacity:0;
+        }
+    }
+    
+    .paused-overlay{
+        position:fixed;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        background:rgba(0,0,0,0.7);
+        backdrop-filter:blur(10px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        z-index:998;
+        animation:fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn{
+        from{opacity:0}
+        to{opacity:1}
+    }
+    
+    .paused-modal{
+        background:white;
+        padding:40px;
+        border-radius:20px;
+        text-align:center;
+        box-shadow:0 20px 60px rgba(0,0,0,0.5);
+        animation:scaleIn 0.3s ease;
+    }
+    
+    @keyframes scaleIn{
+        from{transform:scale(0.8);opacity:0}
+        to{transform:scale(1);opacity:1}
+    }
+    
+    .hint-count{
+        background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color:white;
+        padding:4px 10px;
+        border-radius:12px;
+        font-size:0.85rem;
+        font-weight:700;
+    }
+
+    @media (max-width:768px){
+        .game-area{grid-template-columns:1fr;gap:20px}
+        .grid{padding:10px}
+        .cell{width:32px;height:32px;font-size:0.95rem}
+        .words-list{justify-content:center}
+        .word{font-size:0.85rem;padding:8px 12px}
+        form{grid-template-columns:1fr}
+        header{flex-direction:column;gap:15px;text-align:center}
+        h1{font-size:1.4rem}
+        .counter{width:100%;text-align:center}
+        .controls{flex-direction:column;gap:10px;align-items:stretch}
+        .game-stats{flex-direction:column;gap:8px}
+        .toast{right:10px;left:10px;top:10px}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎯 Caça-Palavras Premium</h1>
+      <div class="counter">📊 Registros: <span id="totalCount">0</span></div>
+    </header>
+
+    <section class="card">
+      <h2 style="margin-bottom:15px">📝 Registrar Participante</h2>
+      <form id="cadForm">
+        <div>
+          <label for="nome">👤 Nome completo</label>
+          <input id="nome" name="nome" required placeholder="Seu nome para o Ranking" />
+        </div>
+        <div>
+          <label for="dob">🎂 Data de nascimento</label>
+          <input id="dob" name="dob" type="date" required />
+        </div>
+        <div class="full">
+          <label for="datetime">📅 Data e hora (Registro)</label>
+          <input id="datetime" name="datetime" type="datetime-local" required />
+        </div>
+
+        <div class="full controls">
+          <button type="submit" id="submitBtn">✨ Registrar e Iniciar Jogo</button>
+          <button type="button" id="openGameBtn">🎮 Jogar Sem Registrar</button>
+          <button type="button" id="clearBtn">🗑️ Limpar Dados Locais</button>
+        </div>
+      </form>
+      <div style="margin-top:20px;color:var(--muted);border-top:2px solid var(--border);padding-top:15px;font-size:0.9rem;">
+        <strong>📌 Últimos registros:</strong> <span id="lastEntries">Nenhum ainda</span>
+      </div>
+    </section>
+    
+    <section class="card" id="leaderboardCard">
+        <h2 style="margin-bottom:5px">🏆 Ranking Nacional de Líderes</h2>
+        <div id="leaderboardStatus" style="color:var(--muted);font-size:0.9rem;margin-top:10px">Carregando ranking...</div>
+        <ul id="leaderboardList" class="leaderboard-list"></ul>
+    </section>
+
+    <section class="card" id="gameCard" style="display:none">
+        <div class="game-header">
+            <h2 id="gameTitle">🎮 Caça-Palavras: Nível 1</h2>
+            <div class="game-controls">
+                <button class="btn-pause" id="pauseBtn">⏸️ Pausar</button>
+                <button class="btn-hint" id="hintBtn">💡 Dica (<span class="hint-count" id="hintCount">3</span>)</button>
+                <button class="btn-reset" id="resetGame">🔄 Reiniciar</button>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        
+        <div class="game-stats">
+            <div class="stat-badge">
+                <span>⏱️</span>
+                <span id="timeDisplay">0.00s</span>
+            </div>
+            <div class="stat-badge">
+                <span>✅</span>
+                <span id="foundCount">0 / 0</span>
+            </div>
+            <div class="stat-badge">
+                <span>🎯</span>
+                <span id="levelDisplay">Nível 1</span>
+            </div>
+        </div>
+        
+      <div class="game-area">
+        <div>
+          <div id="gridWrap"></div>
+        </div>
+        <div style="min-width:220px">
+          <strong style="font-size:1.1rem;color:var(--primary)">📝 Palavras a Encontrar</strong>
+          <div id="words" class="words-list"></div>
+          <div style="margin-top:25px;padding:15px;background:rgba(59, 130, 246, 0.1);border-radius:12px;border-left:4px solid var(--accent)">
+                <strong style="color:var(--accent)">💡 Dica:</strong>
+                <p style="margin-top:8px;color:var(--muted);font-size:0.9rem;line-height:1.5">
+                    Clique na primeira letra e depois na última para selecionar. Funciona em linhas, colunas e diagonais!
+                </p>
+            </div>
+        </div>
+      </div>
+    </section>
+    
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'cadastros_ca';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3ZPPBR4VWrw2KD_3gl57nhsijv4EWpRnETeLY18p-o9a2DuUv1gw1AJ1AK0Bc5k4z/exec';
+
+    const GAME_LEVELS = [
+        { title: 'Nível 1: Forças Armadas', size: 12, words: ['BRASIL', 'AMAZONAS', 'MANAUS', 'POLICIA', 'SEGURANCA', 'FORCA', 'PATENTE', 'ALERTA', 'VIATURA', 'PATRIA'] },
+        { title: 'Nível 2: Tecnologia', size: 14, words: ['PROGRAMA', 'ALGORITMO', 'COMPUTADOR', 'INTERNET', 'HARDWARE', 'SOFTWARE', 'APLICACAO', 'SERVIDOR', 'SEGURANCA', 'ENGENHEIRO', 'DATABASE', 'PYTHON'] },
+        { title: 'Nível 3: Cidades Globais', size: 16, words: ['BRASILIA', 'SAOPAULO', 'RIODEJANEIRO', 'PARIS', 'TOKIO', 'LONDRES', 'NYORQUE', 'SIDNEY', 'PEQUIM', 'MOSCOU', 'DUBAI', 'BERLIM', 'LISBOA', 'MADRI'] }
+    ];
+
+    let GRID_SIZE = GAME_LEVELS[0].size;
+    let WORDS = GAME_LEVELS[0].words;
+
+    let currentRowId = null; 
+    let startTime = null;
+    let timerInterval = null;
+    let currentUserName = 'Convidado';
+    let currentLevel = 0;
+    let isPaused = false;
+    let hintsRemaining = 3;
+    let pausedTime = 0;
+
+    let grid = [];
+    let placedWords = [];
+    let selection = null;
+    let found = new Set();
+
+    const $ = id => document.getElementById(id);
+
+    function nowLocalDateTimeForInput(){
+      const d = new Date();
+      const off = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - off*60000);
+      return local.toISOString().slice(0,16);
+    }
+
+    async function postData(data) {
+      try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'text/plain' }, 
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        console.log('Apps Script Response:', result);
+        return result;
+      } catch (error) {
+        console.error('Error posting data:', error);
+        if(data.type !== 'getLeaderboard') {
+             showToast('❌ Erro ao comunicar com o servidor', 'error');
+        }
+        return { status: 'error', message: error.message };
+      }
+    }
+
+    function loadEntries(){
+      try{const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw):[];}catch(e){return []}
+    }
+    function saveEntries(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+    function updateUIEntries(){
+      const arr = loadEntries();
+      $('totalCount').textContent = arr.length;
+      if(arr.length===0) $('lastEntries').textContent = 'Nenhum ainda';
+      else $('lastEntries').textContent = arr.slice(-3).map(r=>`${r.nome} (${r.datetime.split('T')[0]||r.datetime})`).join(' • ');
+    }
+
+    async function loadLeaderboard(){
+        $('leaderboardStatus').textContent = 'Buscando dados de líderes...';
+        const result = await postData({ type: 'getLeaderboard' }); 
+        const listEl = $('leaderboardList');
+        listEl.innerHTML = ''; 
+
+        if(result.status === 'success' && result.leaderboard){
+            const leaderboard = result.leaderboard;
+            if(leaderboard.length === 0){
+                $('leaderboardStatus').textContent = '🏁 Nenhum jogo completo ainda. Seja o primeiro!';
+                return;
+            }
+            $('leaderboardStatus').textContent = `🎖️ Top ${leaderboard.length} Jogadores (10 palavras):`;
+            
+            const medals = ['🥇', '🥈', '🥉'];
+            leaderboard.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                const medal = index < 3 ? medals[index] : `#${index + 1}`;
+                li.innerHTML = `
+                    <div><span style="font-size:1.2em;margin-right:8px">${medal}</span> <span class="name">${item.nome}</span></div>
+                    <div class="time">⚡ ${parseFloat(item.time).toFixed(2)}s</div>
+                `;
+                listEl.appendChild(li);
+            });
+        } else {
+            $('leaderboardStatus').textContent = '⚠️ Falha ao carregar ranking';
+        }
+    }
+
+    function showToast(message, type = 'success'){
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        if(type === 'error') toast.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    function createParticles(x, y){
+        const container = document.createElement('div');
+        container.className = 'particles';
+        container.style.left = x + 'px';
+        container.style.top = y + 'px';
+        
+        for(let i = 0; i < 12; i++){
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const angle = (Math.PI * 2 * i) / 12;
+            const distance = 50 + Math.random() * 50;
+            particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+            particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+            particle.style.background = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][Math.floor(Math.random() * 5)];
+            container.appendChild(particle);
+        }
+        
+        document.body.appendChild(container);
+        setTimeout(() => container.remove(), 1000);
+    }
+
+    document.addEventListener('DOMContentLoaded',()=>{
+      $('datetime').value = nowLocalDateTimeForInput();
+      updateUIEntries();
+      loadLeaderboard();
+
+      $('cadForm').addEventListener('submit',async e=>{
+        e.preventDefault();
+        const nome = $('nome').value.trim();
+        const dob = $('dob').value;
+        const datetime = $('datetime').value;
+        if(!nome || !dob || !datetime) return showToast('⚠️ Preencha todos os campos', 'error');
+
+        const arr = loadEntries();
+        arr.push({nome,dob,datetime});
+        saveEntries(arr);
+        updateUIEntries();
+
+        const dataToSend = { type: 'registerAndGame', nome, dob, datetime };
+        const result = await postData(dataToSend);
+
+        if(result.status === 'success' && result.newRecord){
+          currentRowId = result.newRecord.rowId; 
+          openGame(nome);
+          $('cadForm').reset();
+          $('datetime').value = nowLocalDateTimeForInput();
+          showToast('✅ Registro salvo
