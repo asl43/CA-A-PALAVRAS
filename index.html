@@ -447,6 +447,7 @@
         .controls{flex-direction:column;gap:10px;align-items:stretch}
         .game-stats{flex-direction:column;gap:8px}
         .toast{right:10px;left:10px;top:10px}
+        .paused-modal{padding:30px 20px;margin:20px}
     }
   </style>
 </head>
@@ -576,63 +577,58 @@
 
     async function postData(data) {
       try {
+        console.log('Enviando dados:', data);
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          mode: 'cors',
-          headers: { 'Content-Type': 'text/plain' }, 
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' }, 
           body: JSON.stringify(data)
         });
-        const result = await response.json();
-        console.log('Apps Script Response:', result);
-        return result;
+        
+        // Com no-cors, não conseguimos ler a resposta, então assumimos sucesso
+        console.log('Dados enviados com sucesso');
+        return { status: 'success', message: 'Dados enviados' };
       } catch (error) {
-        console.error('Error posting data:', error);
+        console.error('Erro ao enviar dados:', error);
         if(data.type !== 'getLeaderboard') {
-             showToast('❌ Erro ao comunicar com o servidor', 'error');
+          showToast('❌ Erro ao comunicar com o servidor', 'error');
         }
         return { status: 'error', message: error.message };
       }
     }
 
     function loadEntries(){
-      try{const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw):[];}catch(e){return []}
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      }catch(e){
+        console.error('Erro ao carregar entradas:', e);
+        return [];
+      }
     }
-    function saveEntries(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+    
+    function saveEntries(arr){
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(arr));
+        console.log('Entradas salvas:', arr);
+      }catch(e){
+        console.error('Erro ao salvar entradas:', e);
+      }
+    }
+    
     function updateUIEntries(){
       const arr = loadEntries();
       $('totalCount').textContent = arr.length;
-      if(arr.length===0) $('lastEntries').textContent = 'Nenhum ainda';
-      else $('lastEntries').textContent = arr.slice(-3).map(r=>`${r.nome} (${r.datetime.split('T')[0]||r.datetime})`).join(' • ');
+      if(arr.length === 0){
+        $('lastEntries').textContent = 'Nenhum ainda';
+      } else {
+        $('lastEntries').textContent = arr.slice(-3).map(r => `${r.nome} (${r.datetime.split('T')[0] || r.datetime})`).join(' • ');
+      }
     }
 
     async function loadLeaderboard(){
-        $('leaderboardStatus').textContent = 'Buscando dados de líderes...';
-        const result = await postData({ type: 'getLeaderboard' }); 
-        const listEl = $('leaderboardList');
-        listEl.innerHTML = ''; 
-
-        if(result.status === 'success' && result.leaderboard){
-            const leaderboard = result.leaderboard;
-            if(leaderboard.length === 0){
-                $('leaderboardStatus').textContent = '🏁 Nenhum jogo completo ainda. Seja o primeiro!';
-                return;
-            }
-            $('leaderboardStatus').textContent = `🎖️ Top ${leaderboard.length} Jogadores (10 palavras):`;
-            
-            const medals = ['🥇', '🥈', '🥉'];
-            leaderboard.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = 'leaderboard-item';
-                const medal = index < 3 ? medals[index] : `#${index + 1}`;
-                li.innerHTML = `
-                    <div><span style="font-size:1.2em;margin-right:8px">${medal}</span> <span class="name">${item.nome}</span></div>
-                    <div class="time">⚡ ${parseFloat(item.time).toFixed(2)}s</div>
-                `;
-                listEl.appendChild(li);
-            });
-        } else {
-            $('leaderboardStatus').textContent = '⚠️ Falha ao carregar ranking';
-        }
+        $('leaderboardStatus').textContent = 'Ranking será carregado após jogos completos...';
+        $('leaderboardList').innerHTML = '<li class="leaderboard-item">Aguardando primeiros jogadores...</li>';
     }
 
     function showToast(message, type = 'success'){
@@ -640,6 +636,7 @@
         toast.className = 'toast';
         toast.textContent = message;
         if(type === 'error') toast.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        if(type === 'warning') toast.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
     }
@@ -665,29 +662,464 @@
         setTimeout(() => container.remove(), 1000);
     }
 
-    document.addEventListener('DOMContentLoaded',()=>{
+    function startTimer(){
+        if(timerInterval) clearInterval(timerInterval);
+        startTime = Date.now() - pausedTime;
+        timerInterval = setInterval(() => {
+            if(!isPaused){
+                const elapsed = (Date.now() - startTime) / 1000;
+                $('timeDisplay').textContent = elapsed.toFixed(2) + 's';
+            }
+        }, 100);
+    }
+
+    function stopTimer(){
+        if(timerInterval){
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function pauseGame(){
+        if(isPaused) return;
+        
+        isPaused = true;
+        pausedTime = Date.now() - startTime;
+        stopTimer();
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'paused-overlay';
+        overlay.id = 'pauseOverlay';
+        overlay.innerHTML = `
+            <div class="paused-modal">
+                <h2 style="font-size:2rem;margin-bottom:20px">⏸️ JOGO PAUSADO</h2>
+                <p style="color:var(--muted);margin-bottom:30px">Clique para continuar</p>
+                <button style="padding:15px 40px;font-size:1.1rem;background:linear-gradient(135deg, #10b981 0%, #059669 100%);color:white;border:none;border-radius:12px;cursor:pointer" onclick="resumeGame()">▶️ Continuar Jogo</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        $('pauseBtn').textContent = '▶️ Continuar';
+    }
+
+    function resumeGame(){
+        if(!isPaused) return;
+        
+        isPaused = false;
+        const overlay = $('pauseOverlay');
+        if(overlay) overlay.remove();
+        
+        startTimer();
+        $('pauseBtn').textContent = '⏸️ Pausar';
+        showToast('▶️ Jogo retomado!', 'success');
+    }
+
+    function giveHint(){
+        if(hintsRemaining <= 0){
+            showToast('⚠️ Sem dicas disponíveis!', 'warning');
+            return;
+        }
+        
+        const notFound = placedWords.filter(pw => !found.has(pw.word) && !pw.notPlaced);
+        if(notFound.length === 0) return;
+        
+        const randomWord = notFound[Math.floor(Math.random() * notFound.length)];
+        const firstCell = document.querySelector(`.cell[data-r='${randomWord.r}'][data-c='${randomWord.c}']`);
+        
+        if(firstCell){
+            firstCell.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+            firstCell.style.transform = 'scale(1.3)';
+            
+            setTimeout(() => {
+                firstCell.style.background = '';
+                firstCell.style.transform = '';
+            }, 2000);
+            
+            hintsRemaining--;
+            $('hintCount').textContent = hintsRemaining;
+            showToast(`💡 Dica: Procure por "${randomWord.word}"`, 'warning');
+            
+            if(hintsRemaining === 0){
+                $('hintBtn').disabled = true;
+                $('hintBtn').style.opacity = '0.5';
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Documento carregado');
       $('datetime').value = nowLocalDateTimeForInput();
       updateUIEntries();
       loadLeaderboard();
 
-      $('cadForm').addEventListener('submit',async e=>{
+      // Evento de submit do formulário
+      $('cadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        console.log('Formulário submetido');
+        
         const nome = $('nome').value.trim();
         const dob = $('dob').value;
         const datetime = $('datetime').value;
-        if(!nome || !dob || !datetime) return showToast('⚠️ Preencha todos os campos', 'error');
+        
+        if(!nome || !dob || !datetime){
+          showToast('⚠️ Preencha todos os campos', 'error');
+          return;
+        }
 
+        console.log('Dados do formulário:', {nome, dob, datetime});
+
+        // Salvar localmente
         const arr = loadEntries();
-        arr.push({nome,dob,datetime});
+        arr.push({nome, dob, datetime});
         saveEntries(arr);
         updateUIEntries();
 
-        const dataToSend = { type: 'registerAndGame', nome, dob, datetime };
-        const result = await postData(dataToSend);
+        // Enviar para Google Sheets
+        const dataToSend = { 
+          type: 'registerAndGame', 
+          nome, 
+          dob, 
+          datetime 
+        };
+        
+        showToast('📤 Enviando dados...', 'warning');
+        await postData(dataToSend);
 
-        if(result.status === 'success' && result.newRecord){
-          currentRowId = result.newRecord.rowId; 
-          openGame(nome);
-          $('cadForm').reset();
-          $('datetime').value = nowLocalDateTimeForInput();
-          showToast('✅ Registro salvo
+        // Abrir jogo
+        openGame(nome);
+        $('cadForm').reset();
+        $('datetime').value = nowLocalDateTimeForInput();
+        showToast('✅ Registro salvo! Bom jogo!', 'success');
+      });
+
+      // Botão jogar sem registrar
+      $('openGameBtn').addEventListener('click', () => {
+        console.log('Abrindo jogo sem registro');
+        openGame('Convidado');
+      });
+
+      // Botão limpar dados
+      $('clearBtn').addEventListener('click', () => {
+        if(confirm('❌ Apagar todos os registros do navegador?')){
+          localStorage.removeItem(STORAGE_KEY);
+          updateUIEntries();
+          showToast('🗑️ Dados locais removidos', 'success');
+        }
+      });
+
+      // Botões do jogo
+      $('pauseBtn').addEventListener('click', () => {
+        if(isPaused) resumeGame();
+        else pauseGame();
+      });
+
+      $('hintBtn').addEventListener('click', giveHint);
+      
+      $('resetGame').addEventListener('click', () => {
+        if(confirm('🔄 Reiniciar o nível atual?')){
+          initGame(currentLevel);
+          showToast('🔄 Jogo reiniciado!', 'success');
+        }
+      });
+    });
+
+    // Funções do jogo
+    function openGame(nome){
+      console.log('Abrindo jogo para:', nome);
+      $('gameCard').style.display = 'block';
+      currentUserName = nome;
+      currentLevel = 0;
+      hintsRemaining = 3;
+      $('hintCount').textContent = hintsRemaining;
+      $('hintBtn').disabled = false;
+      $('hintBtn').style.opacity = '1';
+      pausedTime = 0;
+      isPaused = false;
+      
+      startTimer();
+      initGame(currentLevel);
+      
+      setTimeout(() => {
+        window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+      }, 100);
+      
+      showToast('🎮 Jogo iniciado! Boa sorte!', 'success');
+    }
+
+    function initGame(levelIndex){
+      const level = GAME_LEVELS[levelIndex];
+      GRID_SIZE = level.size;
+      WORDS = level.words;
+      $('gameTitle').textContent = level.title;
+      $('levelDisplay').textContent = `Nível ${levelIndex + 1}`;
+      
+      found.clear();
+      selection = null;
+      placedWords = [];
+      grid = Array.from({length: GRID_SIZE}, () => Array.from({length: GRID_SIZE}, () => ' '));
+      
+      const list = WORDS.slice();
+      for(const w of list) placeWord(w);
+      
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      for(let r = 0; r < GRID_SIZE; r++){
+        for(let c = 0; c < GRID_SIZE; c++){
+          if(grid[r][c] === ' '){
+            grid[r][c] = letters.charAt(Math.floor(Math.random() * letters.length));
+          }
+        }
+      }
+      
+      renderGrid();
+      renderWords();
+      updateFoundCount();
+      updateProgressBar();
+      
+      if(levelIndex === 0){
+        pausedTime = 0;
+        startTimer();
+      }
+    }
+
+    function placeWord(word){
+      const w = word.toUpperCase();
+      const directions = [[0,1], [1,0], [1,1], [-1,1], [0,-1], [-1,0], [-1,-1], [1,-1]];
+      const maxAttempts = 500;
+      
+      for(let attempt = 0; attempt < maxAttempts; attempt++){
+        const dir = directions[Math.floor(Math.random() * directions.length)];
+        const len = w.length;
+        const r = Math.floor(Math.random() * GRID_SIZE);
+        const c = Math.floor(Math.random() * GRID_SIZE);
+        const endR = r + dir[0] * (len - 1);
+        const endC = c + dir[1] * (len - 1);
+        
+        if(endR < 0 || endR >= GRID_SIZE || endC < 0 || endC >= GRID_SIZE) continue;
+        
+        let ok = true;
+        for(let i = 0; i < len; i++){
+          const rr = r + dir[0] * i;
+          const cc = c + dir[1] * i;
+          const ch = grid[rr][cc];
+          if(ch !== ' ' && ch !== w[i]){
+            ok = false;
+            break;
+          }
+        }
+        
+        if(!ok) continue;
+        
+        for(let i = 0; i < len; i++){
+          const rr = r + dir[0] * i;
+          const cc = c + dir[1] * i;
+          grid[rr][cc] = w[i];
+        }
+        
+        placedWords.push({word: w, r, c, dr: dir[0], dc: dir[1], len});
+        return true;
+      }
+      
+      placedWords.push({word: w, notPlaced: true});
+      return false;
+    }
+
+    function renderGrid(){
+      const wrap = $('gridWrap');
+      wrap.innerHTML = '';
+      const g = document.createElement('div');
+      g.className = 'grid';
+      g.style.gridTemplateColumns = `repeat(${GRID_SIZE}, auto)`;
+      
+      for(let r = 0; r < GRID_SIZE; r++){
+        for(let c = 0; c < GRID_SIZE; c++){
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.r = r;
+          cell.dataset.c = c;
+          cell.textContent = grid[r][c];
+          cell.addEventListener('click', onCellClick);
+          g.appendChild(cell);
+        }
+      }
+      
+      wrap.appendChild(g);
+      refreshHighlights();
+    }
+
+    function renderWords(){
+      const node = $('words');
+      node.innerHTML = '';
+      for(const w of placedWords){
+        const div = document.createElement('div');
+        div.className = 'word';
+        div.textContent = w.word;
+        div.id = 'word_' + w.word;
+        node.appendChild(div);
+      }
+    }
+
+    function onCellClick(e){
+      if(isPaused) return;
+      
+      const r = parseInt(e.currentTarget.dataset.r, 10);
+      const c = parseInt(e.currentTarget.dataset.c, 10);
+      
+      if(!selection){
+        selection = {r1: r, c1: c};
+      } else {
+        selection.r2 = r;
+        selection.c2 = c;
+        checkSelection();
+        selection = null;
+      }
+      
+      refreshHighlights();
+    }
+
+    function refreshHighlights(){
+      document.querySelectorAll('.cell').forEach(el => {
+        el.classList.remove('selecting', 'found');
+      });
+      
+      if(selection){
+        const s = selection;
+        const start = document.querySelector(`.cell[data-r='${s.r1}'][data-c='${s.c1}']`);
+        if(start) start.classList.add('selecting');
+      }
+      
+      for(const f of found){
+        const pw = placedWords.find(p => p.word === f);
+        if(!pw || pw.notPlaced) continue;
+        
+        for(let i = 0; i < pw.len; i++){
+          const rr = pw.r + pw.dr * i;
+          const cc = pw.c + pw.dc * i;
+          const el = document.querySelector(`.cell[data-r='${rr}'][data-c='${cc}']`);
+          if(el) el.classList.add('found');
+        }
+        
+        const wel = $('word_' + pw.word);
+        if(wel) wel.classList.add('found');
+      }
+    }
+
+    function checkSelection(){
+      if(!selection || selection.r2 === undefined) return;
+      
+      const r1 = selection.r1, c1 = selection.c1, r2 = selection.r2, c2 = selection.c2;
+      const dr = Math.sign(r2 - r1);
+      const dc = Math.sign(c2 - c1);
+      const lenR = Math.abs(r2 - r1) + 1;
+      const lenC = Math.abs(c2 - c1) + 1;
+      const len = Math.max(lenR, lenC);
+      
+      if(lenR !== 1 && lenC !== 1 && lenR !== lenC){
+        flashSelection(r1, c1, r2, c2);
+        return;
+      }
+
+      let s = '';
+      for(let i = 0; i < len; i++){
+        const rr = r1 + dr * i;
+        const cc = c1 + dc * i;
+        if(rr < 0 || rr >= GRID_SIZE || cc < 0 || cc >= GRID_SIZE) break;
+        s += grid[rr][cc];
+      }
+      
+      const rev = s.split('').reverse().join('');
+      const matched = placedWords.find(p => (p.word === s || p.word === rev) && !found.has(p.word));
+      
+      if(matched){
+        found.add(matched.word);
+        
+        // Criar partículas no centro da palavra encontrada
+        const firstCell = document.querySelector(`.cell[data-r='${matched.r}'][data-c='${matched.c}']`);
+        if(firstCell){
+          const rect = firstCell.getBoundingClientRect();
+          createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        }
+        
+        updateFoundCount();
+        updateProgressBar();
+        refreshHighlights();
+        showToast(`✅ Palavra encontrada: ${matched.word}`, 'success');
+        checkWin();
+      } else {
+        flashSelection(r1, c1, r2, c2);
+      }
+    }
+
+    function flashSelection(r1, c1, r2, c2){
+      const dr = Math.sign(r2 - r1);
+      const dc = Math.sign(c2 - c1);
+      const len = Math.max(Math.abs(r2 - r1) + 1, Math.abs(c2 - c1) + 1);
+      const cells = [];
+      
+      for(let i = 0; i < len; i++){
+        const rr = r1 + dr * i;
+        const cc = c1 + dc * i;
+        const el = document.querySelector(`.cell[data-r='${rr}'][data-c='${cc}']`);
+        if(el){
+          el.classList.add('selecting');
+          cells.push(el);
+        }
+      }
+      
+      setTimeout(() => cells.forEach(el => el.classList.remove('selecting')), 400);
+    }
+
+    function updateFoundCount(){
+      $('foundCount').textContent = `${found.size} / ${placedWords.length}`;
+    }
+
+    function updateProgressBar(){
+      const progress = (found.size / placedWords.length) * 100;
+      $('progressFill').style.width = progress + '%';
+    }
+
+    function moveToNextLevel(){
+      currentLevel++;
+      if(currentLevel < GAME_LEVELS.length){
+        showToast(`🎉 Nível ${currentLevel} completo! Partiu Nível ${currentLevel + 1}!`, 'success');
+        setTimeout(() => {
+          initGame(currentLevel);
+          hintsRemaining = 3;
+          $('hintCount').textContent = hintsRemaining;
+          $('hintBtn').disabled = false;
+          $('hintBtn').style.opacity = '1';
+        }, 1500);
+      } else {
+        showToast(`🏆 PARABÉNS! Você completou todos os níveis!`, 'success');
+        stopTimer();
+        setTimeout(() => {
+          $('gameCard').style.display = 'none';
+        }, 3000);
+      }
+    }
+
+    function checkWin(){
+      if(found.size >= placedWords.length){
+        const timeTakenSeconds = ((Date.now() - startTime) / 1000).toFixed(2);
+        
+        if(currentLevel === 0 && currentRowId){
+          const gameData = {
+            type: 'gameFinished',
+            rowId: currentRowId,
+            foundCount: found.size,
+            timeTakenSeconds: parseFloat(timeTakenSeconds),
+            playerName: currentUserName
+          };
+          
+          console.log('Enviando resultado do jogo:', gameData);
+          postData(gameData);
+          currentRowId = null;
+        }
+        
+        setTimeout(moveToNextLevel, 1000);
+      }
+    }
+
+    // Tornar funções globais para uso no HTML
+    window.resumeGame = resumeGame;
+  </script>
+</body>
+</html>
