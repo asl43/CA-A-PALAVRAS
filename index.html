@@ -150,7 +150,7 @@
         box-shadow:0 10px 25px rgba(102, 126, 234, 0.4);
     }
     
-    .theme-toggle{
+    .theme-toggle, .sound-toggle, .fullscreen-toggle{
         background:var(--card);
         border:2px solid var(--border);
         padding:10px 15px;
@@ -160,7 +160,7 @@
         transition:all 0.3s ease;
     }
     
-    .theme-toggle:hover{
+    .theme-toggle:hover, .sound-toggle:hover, .fullscreen-toggle:hover{
         transform:scale(1.1);
         border-color:var(--accent);
     }
@@ -355,6 +355,12 @@
         font-size:1.1rem;
     }
     
+    .score-display{
+        color:#fbbf24;
+        font-weight:700;
+        font-size:1.1rem;
+    }
+    
     .name{
         font-weight:600;
         color:var(--primary);
@@ -429,6 +435,22 @@
     @keyframes explode{
         to{
             transform:translate(var(--tx), var(--ty));
+            opacity:0;
+        }
+    }
+    
+    .confetti{
+        position:fixed;
+        width:10px;
+        height:10px;
+        pointer-events:none;
+        z-index:999;
+        animation:confettiFall 3s ease-out forwards;
+    }
+    
+    @keyframes confettiFall{
+        to{
+            transform:translateY(100vh) rotate(720deg);
             opacity:0;
         }
     }
@@ -606,6 +628,68 @@
         font-weight:700;
     }
     
+    .combo-badge{
+        position:fixed;
+        top:50%;
+        left:50%;
+        transform:translate(-50%, -50%) scale(0);
+        background:linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color:white;
+        padding:20px 40px;
+        border-radius:20px;
+        font-size:2rem;
+        font-weight:800;
+        z-index:1001;
+        animation:comboPop 1s ease-out;
+        box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    }
+    
+    @keyframes comboPop{
+        0%{transform:translate(-50%, -50%) scale(0)}
+        50%{transform:translate(-50%, -50%) scale(1.2)}
+        100%{transform:translate(-50%, -50%) scale(0)}
+    }
+    
+    .achievement-badge{
+        background:linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        color:white;
+        padding:6px 12px;
+        border-radius:15px;
+        font-size:0.8rem;
+        font-weight:700;
+        display:inline-flex;
+        align-items:center;
+        gap:5px;
+        margin:5px;
+    }
+    
+    .stats-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+        gap:15px;
+        margin-top:20px;
+    }
+    
+    .stat-card{
+        background:var(--card);
+        border:2px solid var(--border);
+        border-radius:12px;
+        padding:15px;
+        text-align:center;
+    }
+    
+    .stat-value{
+        font-size:2rem;
+        font-weight:800;
+        color:var(--accent);
+    }
+    
+    .stat-label{
+        color:var(--muted);
+        font-size:0.9rem;
+        margin-top:5px;
+    }
+    
     .empty-state{
         text-align:center;
         padding:40px 20px;
@@ -615,6 +699,36 @@
     .empty-state-icon{
         font-size:4rem;
         margin-bottom:15px;
+    }
+    
+    .tutorial-overlay{
+        position:fixed;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        background:rgba(0,0,0,0.9);
+        z-index:1002;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+    
+    .tutorial-content{
+        background:var(--card);
+        padding:40px;
+        border-radius:20px;
+        max-width:600px;
+        text-align:center;
+        box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    }
+    
+    .tutorial-step{
+        margin:20px 0;
+        padding:20px;
+        background:rgba(59, 130, 246, 0.1);
+        border-radius:12px;
+        border-left:4px solid var(--accent);
     }
 
     @media (max-width:768px){
@@ -640,7 +754,9 @@
     <header>
       <h1>🎯 Caça-Palavras Premium</h1>
       <div style="display:flex;gap:15px;align-items:center;flex-wrap:wrap">
+        <button class="sound-toggle" id="soundToggle" title="Alternar Som">🔊</button>
         <button class="theme-toggle" id="themeToggle" title="Alternar Tema">🌙</button>
+        <button class="fullscreen-toggle" id="fullscreenToggle" title="Tela Cheia">⛶</button>
         <div class="counter">📊 Registros: <span id="totalCount">0</span></div>
       </div>
     </header>
@@ -664,6 +780,7 @@
         <div class="full controls">
           <button type="submit" id="submitBtn">✨ Registrar e Iniciar Jogo</button>
           <button type="button" id="openGameBtn">🎮 Jogar Sem Registrar</button>
+          <button type="button" id="statsBtn">📊 Estatísticas</button>
           <button type="button" id="historyBtn">📜 Ver Histórico</button>
           <button type="button" id="clearBtn">🗑️ Limpar Dados</button>
         </div>
@@ -677,13 +794,18 @@
         <h2 style="margin-bottom:5px">🏆 Ranking Nacional de Líderes</h2>
         <div id="leaderboardStatus" style="color:var(--muted);font-size:0.9rem;margin-top:10px">Carregando ranking...</div>
         <ul id="leaderboardList" class="leaderboard-list"></ul>
+        <button id="refreshLeaderboard" style="margin-top:15px;background:var(--accent);color:white;padding:10px 20px;border-radius:8px;width:100%">🔄 Atualizar Ranking</button>
     </section>
 
     <section class="card" id="gameCard" style="display:none">
         <div class="game-header">
             <div>
                 <h2 id="gameTitle">🎮 Caça-Palavras: Nível 1</h2>
-                <span id="zenBadge" style="display:none" class="zen-badge">🧘 Modo Zen</span>
+                <div style="display:flex;gap:10px;margin-top:5px;flex-wrap:wrap">
+                    <span id="zenBadge" style="display:none" class="zen-badge">🧘 Modo Zen</span>
+                    <span id="comboDisplay" style="display:none" class="achievement-badge">🔥 Combo: <span id="comboCount">0</span></span>
+                    <span id="scoreDisplay" class="achievement-badge">⭐ Pontos: <span id="currentScore">0</span></span>
+                </div>
             </div>
             <div class="game-controls">
                 <button class="btn-levels" id="levelsBtn">📋 Níveis</button>
@@ -710,6 +832,10 @@
                 <span>🎯</span>
                 <span id="levelDisplay">Nível 1</span>
             </div>
+            <div class="stat-badge">
+                <span>📈</span>
+                <span id="accuracyDisplay">100%</span>
+            </div>
         </div>
         
       <div class="game-area">
@@ -724,7 +850,11 @@
                 <p style="margin-top:8px;color:var(--muted);font-size:0.9rem;line-height:1.5">
                     Clique na primeira letra e depois na última para selecionar. Funciona em linhas, colunas e diagonais!
                 </p>
+                <p style="margin-top:8px;color:var(--muted);font-size:0.85rem">
+                    <strong>Atalhos:</strong> ESC = Pausar | H = Dica | F = Tela Cheia
+                </p>
             </div>
+            <div id="achievementsDisplay" style="margin-top:15px"></div>
         </div>
       </div>
     </section>
@@ -735,6 +865,8 @@
     const STORAGE_KEY = 'cadastros_ca';
     const HISTORY_KEY = 'game_history';
     const THEME_KEY = 'dark_mode';
+    const PROGRESS_KEY = 'game_progress';
+    const SOUND_KEY = 'sound_enabled';
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3ZPPBR4VWrw2KD_3gl57nhsijv4EWpRnETeLY18p-o9a2DuUv1gw1AJ1AK0Bc5k4z/exec';
 
     const GAME_LEVELS = [
@@ -756,6 +888,16 @@
     let hintsRemaining = 3;
     let pausedTime = 0;
     let isZenMode = false;
+    let sessionStart = Date.now();
+    let soundEnabled = true;
+    let comboCount = 0;
+    let lastWordTime = 0;
+    let gameScore = 0;
+    let totalScore = 0;
+    let correctSelections = 0;
+    let totalSelections = 0;
+    let achievements = [];
+    let unlockedLevels = 1;
 
     let grid = [];
     let placedWords = [];
@@ -763,6 +905,46 @@
     let found = new Set();
 
     const $ = id => document.getElementById(id);
+
+    // ===== SONS DO JOGO =====
+    const sounds = {
+        click: () => playBeep(800, 0.1, 0.05),
+        success: () => playBeep(1000, 0.2, 0.1),
+        error: () => playBeep(300, 0.3, 0.1),
+        levelUp: () => {
+            playBeep(523, 0.1, 0.1);
+            setTimeout(() => playBeep(659, 0.1, 0.1), 100);
+            setTimeout(() => playBeep(784, 0.2, 0.15), 200);
+        },
+        combo: () => {
+            for(let i = 0; i < 3; i++) {
+                setTimeout(() => playBeep(1000 + i * 200, 0.1, 0.08), i * 80);
+            }
+        }
+    };
+
+    function playBeep(frequency, duration, volume) {
+        if (!soundEnabled) return;
+        try {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        } catch (e) {
+            console.log('Áudio não suportado');
+        }
+    }
 
     // ===== TEMA ESCURO/CLARO =====
     function loadTheme() {
@@ -778,6 +960,126 @@
         localStorage.setItem(THEME_KEY, isDark);
         $('themeToggle').textContent = isDark ? '☀️' : '🌙';
         showToast(isDark ? '🌙 Modo Escuro Ativado' : '☀️ Modo Claro Ativado', 'success');
+        sounds.click();
+    }
+
+    function toggleSound() {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem(SOUND_KEY, soundEnabled);
+        $('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+        showToast(soundEnabled ? '🔊 Som Ativado' : '🔇 Som Desativado', 'success');
+        if(soundEnabled) sounds.success();
+    }
+
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                showToast('⚠️ Erro ao ativar tela cheia', 'error');
+            });
+            $('fullscreenToggle').textContent = '⛶';
+        } else {
+            document.exitFullscreen();
+            $('fullscreenToggle').textContent = '⛶';
+        }
+    }
+
+    // ===== SISTEMA DE PONTUAÇÃO =====
+    function calculateScore(timeTaken, hintsUsed, level) {
+        const baseScore = 1000;
+        const timeBonus = Math.max(0, 500 - timeTaken * 2);
+        const hintPenalty = hintsUsed * 100;
+        const levelMultiplier = (level + 1) * 1.5;
+        const comboBonus = comboCount * 50;
+        
+        return Math.round((baseScore + timeBonus - hintPenalty + comboBonus) * levelMultiplier);
+    }
+
+    function updateScore(points) {
+        gameScore += points;
+        totalScore += points;
+        $('currentScore').textContent = gameScore;
+        saveProgress();
+    }
+
+    // ===== SISTEMA DE COMBO =====
+    function checkCombo() {
+        const now = Date.now();
+        if (now - lastWordTime < 5000) {
+            comboCount++;
+            if (comboCount >= 3) {
+                showCombo();
+                sounds.combo();
+                updateScore(comboCount * 25);
+            }
+            $('comboDisplay').style.display = 'inline-flex';
+            $('comboCount').textContent = comboCount;
+        } else {
+            comboCount = 1;
+        }
+        lastWordTime = now;
+    }
+
+    function showCombo() {
+        const comboBadge = document.createElement('div');
+        comboBadge.className = 'combo-badge';
+        comboBadge.textContent = `🔥 COMBO x${comboCount}!`;
+        document.body.appendChild(comboBadge);
+        setTimeout(() => comboBadge.remove(), 1000);
+    }
+
+    // ===== SISTEMA DE CONQUISTAS =====
+    function checkAchievements() {
+        const newAchievements = [];
+        
+        if (hintsRemaining === 3 && found.size === placedWords.length) {
+            newAchievements.push({ icon: '🧠', title: 'Gênio', desc: 'Completou sem usar dicas!' });
+        }
+        
+        if (!isZenMode && gameScore >= 5000) {
+            newAchievements.push({ icon: '⚡', title: 'Velocista', desc: 'Mais de 5000 pontos!' });
+        }
+        
+        if (comboCount >= 5) {
+            newAchievements.push({ icon: '🔥', title: 'Combo Master', desc: '5 palavras seguidas!' });
+        }
+        
+        const accuracy = totalSelections > 0 ? (correctSelections / totalSelections * 100) : 100;
+        if (accuracy === 100 && totalSelections >= 5) {
+            newAchievements.push({ icon: '🎯', title: 'Perfeccionista', desc: '100% de precisão!' });
+        }
+        
+        newAchievements.forEach(ach => {
+            if (!achievements.find(a => a.title === ach.title)) {
+                achievements.push(ach);
+                showAchievement(ach);
+            }
+        });
+        
+        displayAchievements();
+        saveProgress();
+    }
+
+    function showAchievement(achievement) {
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+        toast.innerHTML = `<strong>${achievement.icon} ${achievement.title}</strong><br>${achievement.desc}`;
+        document.body.appendChild(toast);
+        sounds.levelUp();
+        setTimeout(() => toast.remove(), 4000);
+    }
+
+    function displayAchievements() {
+        const container = $('achievementsDisplay');
+        if (achievements.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        container.innerHTML = '<div style="margin-bottom:10px;font-weight:600;color:var(--primary)">🏆 Conquistas:</div>' +
+            achievements.map(ach => 
+                `<span class="achievement-badge">${ach.icon} ${ach.title}</span>`
+            ).join('');
     }
 
     // ===== HISTÓRICO DE PARTIDAS =====
@@ -786,9 +1088,9 @@
             const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
             history.unshift({
                 ...data,
-                date: new Date().toISOString()
+                date: new Date().toISOString(),
+                score: gameScore
             });
-            // Manter apenas últimas 50 partidas
             if (history.length > 50) history.pop();
             localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
         } catch (e) {
@@ -841,7 +1143,7 @@
                                 <div class="history-info">
                                     <h4>${levelInfo.title}</h4>
                                     <p>
-                                        ${game.playerName} • ${game.foundWords}/${game.totalWords} palavras
+                                        ${game.playerName} • ${game.foundWords}/${game.totalWords} palavras • ${game.score || 0} pts
                                         ${game.zenMode ? ' • <span class="zen-badge" style="font-size:0.8rem;padding:3px 8px">🧘 Zen</span>' : ''}
                                     </p>
                                     <p style="font-size:0.85rem">${dateStr} às ${timeStr}</p>
@@ -865,6 +1167,130 @@
             localStorage.removeItem(HISTORY_KEY);
             closeModal('historyModal');
             showToast('🗑️ Histórico limpo com sucesso!', 'success');
+        }
+    }
+
+    // ===== ESTATÍSTICAS =====
+    function showStatsModal() {
+        const history = loadGameHistory();
+        const progress = loadProgress();
+        
+        const totalGames = history.length;
+        const completedGames = history.filter(g => g.completed).length;
+        const totalTime = history.reduce((sum, g) => sum + (g.time || 0), 0);
+        const avgTime = totalGames > 0 ? (totalTime / totalGames).toFixed(2) : 0;
+        const bestTime = history.length > 0 ? Math.min(...history.map(g => g.time || 999)).toFixed(2) : 0;
+        const accuracy = totalSelections > 0 ? (correctSelections / totalSelections * 100).toFixed(1) : 100;
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.id = 'statsModal';
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.style.position = 'relative';
+        
+        modal.innerHTML = `
+            <button class="modal-close" onclick="closeModal('statsModal')">×</button>
+            <h2>📊 Suas Estatísticas</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">${totalGames}</div>
+                    <div class="stat-label">Partidas Jogadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${completedGames}</div>
+                    <div class="stat-label">Completadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${progress.totalScore || 0}</div>
+                    <div class="stat-label">Pontos Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${avgTime}s</div>
+                    <div class="stat-label">Tempo Médio</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${bestTime}s</div>
+                    <div class="stat-label">Melhor Tempo</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${accuracy}%</div>
+                    <div class="stat-label">Precisão</div>
+                </div>
+            </div>
+            
+            <div style="margin-top:30px">
+                <h3 style="color:var(--primary);margin-bottom:15px">🏆 Conquistas Desbloqueadas</h3>
+                ${achievements.length === 0 ? `
+                    <div class="empty-state">
+                        <p style="color:var(--muted)">Jogue para desbloquear conquistas!</p>
+                    </div>
+                ` : `
+                    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
+                        ${achievements.map(ach => 
+                            `<div class="achievement-badge">${ach.icon} ${ach.title}</div>`
+                        ).join('')}
+                    </div>
+                `}
+            </div>
+            
+            <div style="margin-top:30px">
+                <h3 style="color:var(--primary);margin-bottom:15px">🎯 Progresso por Nível</h3>
+                ${GAME_LEVELS.map((level, idx) => {
+                    const levelGames = history.filter(g => g.level === idx && g.completed);
+                    const levelBestTime = levelGames.length > 0 ? 
+                        Math.min(...levelGames.map(g => g.time || 999)).toFixed(2) : '-';
+                    const levelBestScore = levelGames.length > 0 ?
+                        Math.max(...levelGames.map(g => g.score || 0)) : 0;
+                    
+                    return `
+                        <div style="padding:10px;background:var(--card);border:2px solid var(--border);border-radius:10px;margin-bottom:10px">
+                            <div style="display:flex;justify-content:space-between;align-items:center">
+                                <span style="font-weight:600">${level.title}</span>
+                                <div>
+                                    <span style="color:var(--accent);margin-right:15px">⏱️ ${levelBestTime}s</span>
+                                    <span style="color:#fbbf24">⭐ ${levelBestScore} pts</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+        
+        overlay.appendChild(modal);
+        document.body.appendChild(overlay);
+    }
+
+    // ===== PROGRESSÃO E SALVAMENTO =====
+    function saveProgress() {
+        try {
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+                currentLevel,
+                unlockedLevels,
+                totalScore,
+                achievements,
+                correctSelections,
+                totalSelections
+            }));
+        } catch (e) {
+            console.error('Erro ao salvar progresso:', e);
+        }
+    }
+
+    function loadProgress() {
+        try {
+            const progress = JSON.parse(localStorage.getItem(PROGRESS_KEY) || '{}');
+            if (progress.unlockedLevels) unlockedLevels = progress.unlockedLevels;
+            if (progress.totalScore) totalScore = progress.totalScore;
+            if (progress.achievements) achievements = progress.achievements;
+            if (progress.correctSelections) correctSelections = progress.correctSelections;
+            if (progress.totalSelections) totalSelections = progress.totalSelections;
+            return progress;
+        } catch (e) {
+            return {};
         }
     }
 
@@ -892,16 +1318,20 @@
             <div class="level-grid">
                 ${GAME_LEVELS.map((level, index) => {
                     const difficultyClass = level.difficulty.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    const isLocked = index >= unlockedLevels;
                     return `
-                        <div class="level-card" onclick="selectLevel(${index})" style="border-color:${level.color}">
+                        <div class="level-card ${isLocked ? 'locked' : ''}" 
+                             onclick="${isLocked ? '' : `selectLevel(${index})`}" 
+                             style="border-color:${level.color};${isLocked ? 'opacity:0.5' : ''}">
                             <div style="font-size:2.5rem;margin-bottom:10px">
-                                ${index === 0 ? '🛡️' : index === 1 ? '💻' : index === 2 ? '🌍' : '🦁'}
+                                ${isLocked ? '🔒' : (index === 0 ? '🛡️' : index === 1 ? '💻' : index === 2 ? '🌍' : '🦁')}
                             </div>
                             <h3 style="margin:10px 0;color:var(--primary);font-size:1.1rem">${level.title.split(':')[1]}</h3>
                             <div class="level-difficulty difficulty-${difficultyClass}">${level.difficulty}</div>
                             <p style="color:var(--muted);font-size:0.9rem;margin-top:10px">
                                 ${level.words.length} palavras • Grade ${level.size}x${level.size}
                             </p>
+                            ${isLocked ? '<p style="color:var(--warning);margin-top:10px;font-size:0.85rem">Complete o nível anterior</p>' : ''}
                         </div>
                     `;
                 }).join('')}
@@ -917,6 +1347,7 @@
         currentLevel = levelIndex;
         initGame(levelIndex);
         showToast(`🎮 ${GAME_LEVELS[levelIndex].title} iniciado!`, 'success');
+        sounds.click();
     }
 
     function toggleZenMode(enabled) {
@@ -932,6 +1363,7 @@
             }
         }
         showToast(enabled ? '🧘 Modo Zen Ativado' : '⏱️ Cronômetro Ativado', 'success');
+        sounds.click();
     }
 
     function closeModal(modalId) {
@@ -947,6 +1379,59 @@
     window.selectLevel = selectLevel;
     window.toggleZenMode = toggleZenMode;
 
+    // ===== TUTORIAL INTERATIVO =====
+    function showTutorial() {
+        const overlay = document.createElement('div');
+        overlay.className = 'tutorial-overlay';
+        overlay.id = 'tutorialOverlay';
+        
+        const content = document.createElement('div');
+        content.className = 'tutorial-content';
+        
+        content.innerHTML = `
+            <h2 style="font-size:2rem;margin-bottom:20px">🎯 Como Jogar</h2>
+            
+            <div class="tutorial-step">
+                <h3 style="color:var(--primary);margin-bottom:10px">1️⃣ Encontre as Palavras</h3>
+                <p style="color:var(--muted)">Clique na primeira letra e depois na última letra da palavra. As palavras podem estar na horizontal, vertical ou diagonal!</p>
+            </div>
+            
+            <div class="tutorial-step">
+                <h3 style="color:var(--primary);margin-bottom:10px">2️⃣ Ganhe Pontos</h3>
+                <p style="color:var(--muted)">Encontre palavras rapidamente para ganhar bônus de tempo. Use menos dicas para mais pontos!</p>
+            </div>
+            
+            <div class="tutorial-step">
+                <h3 style="color:var(--primary);margin-bottom:10px">3️⃣ Faça Combos</h3>
+                <p style="color:var(--muted)">Encontre palavras em menos de 5 segundos uma da outra para ativar combos e ganhar pontos extras!</p>
+            </div>
+            
+            <div class="tutorial-step">
+                <h3 style="color:var(--primary);margin-bottom:10px">⌨️ Atalhos do Teclado</h3>
+                <p style="color:var(--muted)">
+                    <strong>ESC</strong> - Pausar/Retomar<br>
+                    <strong>H</strong> - Usar Dica<br>
+                    <strong>F</strong> - Tela Cheia
+                </p>
+            </div>
+            
+            <button onclick="closeTutorial()" style="margin-top:20px;background:linear-gradient(135deg, #10b981 0%, #059669 100%);color:white;padding:15px 40px;border-radius:12px;font-size:1.1rem;border:none;cursor:pointer;width:100%">
+                ✅ Entendi, Vamos Jogar!
+            </button>
+        `;
+        
+        overlay.appendChild(content);
+        document.body.appendChild(overlay);
+    }
+
+    function closeTutorial() {
+        const tutorial = $('tutorialOverlay');
+        if (tutorial) tutorial.remove();
+        localStorage.setItem('tutorial_shown', 'true');
+    }
+
+    window.closeTutorial = closeTutorial;
+
     // ===== FUNÇÕES UTILITÁRIAS =====
     function nowLocalDateTimeForInput(){
       const d = new Date();
@@ -960,13 +1445,13 @@
         console.log('Enviando dados:', data);
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
-          mode: 'no-cors',
           headers: { 'Content-Type': 'application/json' }, 
           body: JSON.stringify(data)
         });
         
-        console.log('Dados enviados com sucesso');
-        return { status: 'success', message: 'Dados enviados' };
+        const result = await response.json();
+        console.log('Resposta recebida:', result);
+        return result;
       } catch (error) {
         console.error('Erro ao enviar dados:', error);
         if(data.type !== 'getLeaderboard') {
@@ -1006,8 +1491,32 @@
     }
 
     async function loadLeaderboard(){
-        $('leaderboardStatus').textContent = 'Ranking será carregado após jogos completos...';
-        $('leaderboardList').innerHTML = '<li class="leaderboard-item">Aguardando primeiros jogadores...</li>';
+        $('leaderboardStatus').textContent = '⏳ Carregando ranking...';
+        
+        try {
+            const response = await fetch(APPS_SCRIPT_URL + '?type=getLeaderboard');
+            const data = await response.json();
+            
+            if(data.leaderboard && data.leaderboard.length > 0) {
+                $('leaderboardStatus').textContent = '🏆 Top Jogadores do Brasil';
+                $('leaderboardList').innerHTML = data.leaderboard.map((player, index) => `
+                    <li class="leaderboard-item">
+                        <span class="name">${index + 1}º - ${player.nome}</span>
+                        <div>
+                            <span class="time">${player.tempo}s</span>
+                            <span class="score-display" style="margin-left:15px">${player.pontos || 0} pts</span>
+                        </div>
+                    </li>
+                `).join('');
+            } else {
+                $('leaderboardStatus').textContent = 'Aguardando primeiros jogadores...';
+                $('leaderboardList').innerHTML = '<li class="leaderboard-item">Nenhum jogador ainda. Seja o primeiro!</li>';
+            }
+        } catch (error) {
+            console.error('Erro ao carregar ranking:', error);
+            $('leaderboardStatus').textContent = '⚠️ Erro ao carregar ranking';
+            $('leaderboardList').innerHTML = '<li class="leaderboard-item">Erro ao carregar dados. Tente novamente.</li>';
+        }
     }
 
     function showToast(message, type = 'success'){
@@ -1039,6 +1548,21 @@
         
         document.body.appendChild(container);
         setTimeout(() => container.remove(), 1000);
+    }
+
+    function createConfetti() {
+        for(let i = 0; i < 50; i++){
+            setTimeout(() => {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * window.innerWidth + 'px';
+                confetti.style.top = -20 + 'px';
+                confetti.style.background = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#fbbf24'][Math.floor(Math.random() * 6)];
+                confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 3000);
+            }, i * 30);
+        }
     }
 
     function startTimer(){
@@ -1085,6 +1609,7 @@
         `;
         document.body.appendChild(overlay);
         $('pauseBtn').textContent = '▶️ Continuar';
+        sounds.click();
     }
 
     function resumeGame(){
@@ -1099,11 +1624,13 @@
         }
         $('pauseBtn').textContent = '⏸️ Pausar';
         showToast('▶️ Jogo retomado!', 'success');
+        sounds.click();
     }
 
     function giveHint(){
         if(hintsRemaining <= 0){
             showToast('⚠️ Sem dicas disponíveis!', 'warning');
+            sounds.error();
             return;
         }
         
@@ -1127,6 +1654,7 @@
             hintsRemaining--;
             $('hintCount').textContent = hintsRemaining;
             showToast(`💡 Dica: Procure por "${randomWord.word}"`, 'warning');
+            sounds.click();
             
             if(hintsRemaining === 0){
                 $('hintBtn').disabled = true;
@@ -1135,398 +1663,522 @@
         }
     }
 
+    // ===== ATALHOS DE TECLADO =====
+    document.addEventListener('keydown', (e) => {
+        if(!$('gameCard') || $('gameCard').style.display === 'none') return;
+        
+        if(e.key === 'Escape') {
+            e.preventDefault();
+            if(isPaused) resumeGame();
+            else pauseGame();
+        }
+        
+        if(e.key === 'h' || e.key === 'H') {
+            e.preventDefault();
+            giveHint();
+        }
+        
+        if(e.key === 'f' || e.key === 'F') {
+            e.preventDefault();
+            toggleFullscreen();
+        }
+    });
+
+    // ===== DETECTAR MUDANÇA DE ABA =====
+    document.addEventListener('visibilitychange', () => {
+        if(document.hidden && !isPaused && $('gameCard').style.display !== 'none') {
+            pauseGame();
+        }
+    });
+
     // ===== EVENT LISTENERS =====
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('Documento carregado');
-      loadTheme();
-      $('datetime').value = nowLocalDateTimeForInput();
-      updateUIEntries();
-      loadLeaderboard();
-
-      // Theme toggle
-      $('themeToggle').addEventListener('click', toggleTheme);
-
-      // Histórico
-      $('historyBtn').addEventListener('click', showHistoryModal);
-
-      // Evento de submit do formulário
-      $('cadForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        console.log('Formulário submetido');
+        console.log('Documento carregado');
+        loadTheme();
+        loadProgress();
         
-        const nome = $('nome').value.trim();
-        const dob = $('dob').value;
-        const datetime = $('datetime').value;
+        const soundSaved = localStorage.getItem(SOUND_KEY);
+        soundEnabled = soundSaved !== 'false';
+        $('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
         
-        if(!nome || !dob || !datetime){
-          showToast('⚠️ Preencha todos os campos', 'error');
-          return;
-        }
-
-        console.log('Dados do formulário:', {nome, dob, datetime});
-
-        const arr = loadEntries();
-        arr.push({nome, dob, datetime});
-        saveEntries(arr);
-        updateUIEntries();
-
-        const dataToSend = { 
-          type: 'registerAndGame', 
-          nome, 
-          dob, 
-          datetime 
-        };
-        
-        showToast('📤 Enviando dados...', 'warning');
-        await postData(dataToSend);
-
-        openGame(nome);
-        $('cadForm').reset();
         $('datetime').value = nowLocalDateTimeForInput();
-        showToast('✅ Registro salvo! Bom jogo!', 'success');
-      });
+        updateUIEntries();
+        loadLeaderboard();
 
-      $('openGameBtn').addEventListener('click', () => {
-        console.log('Abrindo jogo sem registro');
-        openGame('Convidado');
-      });
-
-      $('clearBtn').addEventListener('click', () => {
-        if(confirm('❌ Apagar todos os registros do navegador?')){
-          localStorage.removeItem(STORAGE_KEY);
-          updateUIEntries();
-          showToast('🗑️ Dados locais removidos', 'success');
+        // Mostrar tutorial apenas na primeira vez
+        if(!localStorage.getItem('tutorial_shown')) {
+            setTimeout(showTutorial, 1000);
         }
-      });
 
-      $('pauseBtn').addEventListener('click', () => {
-        if(isPaused) resumeGame();
-        else pauseGame();
-      });
+        $('themeToggle').addEventListener('click', toggleTheme);
+        $('soundToggle').addEventListener('click', toggleSound);
+        $('fullscreenToggle').addEventListener('click', toggleFullscreen);
+        $('historyBtn').addEventListener('click', showHistoryModal);
+        $('statsBtn').addEventListener('click', showStatsModal);
+        $('refreshLeaderboard').addEventListener('click', loadLeaderboard);
 
-      $('hintBtn').addEventListener('click', giveHint);
-      
-      $('levelsBtn').addEventListener('click', showLevelSelector);
-      
-      $('resetGame').addEventListener('click', () => {
-        if(confirm('🔄 Reiniciar o nível atual?')){
-          initGame(currentLevel);
-          showToast('🔄 Jogo reiniciado!', 'success');
-        }
-      });
+        $('cadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            console.log('Formulário submetido');
+            
+            const nome = $('nome').value.trim();
+            const dob = $('dob').value;
+            const datetime = $('datetime').value;
+            
+            if(!nome || !dob || !datetime){
+                showToast('⚠️ Preencha todos os campos', 'error');
+                if(soundEnabled) sounds.error();
+                return;
+            }
+
+            console.log('Dados do formulário:', {nome, dob, datetime});
+
+            const arr = loadEntries();
+            arr.push({nome, dob, datetime});
+            saveEntries(arr);
+            updateUIEntries();
+
+            const dataToSend = { 
+                type: 'registerAndGame', 
+                nome, 
+                dob, 
+                datetime 
+            };
+            
+            showToast('📤 Enviando dados...', 'warning');
+            
+            try {
+                const result = await postData(dataToSend);
+                
+                if(result && result.rowId) {
+                    currentRowId = result.rowId;
+                    console.log('ID da linha recebido:', currentRowId);
+                }
+            } catch(error) {
+                console.error('Erro ao enviar dados:', error);
+            }
+
+            openGame(nome);
+            $('cadForm').reset();
+            $('datetime').value = nowLocalDateTimeForInput();
+            showToast('✅ Registro salvo! Bom jogo!', 'success');
+            if(soundEnabled) sounds.success();
+        });
+
+        $('openGameBtn').addEventListener('click', () => {
+            console.log('Abrindo jogo sem registro');
+            openGame('Convidado');
+            sounds.click();
+        });
+
+        $('clearBtn').addEventListener('click', () => {
+            if(confirm('❌ Apagar todos os registros do navegador?')){
+                localStorage.removeItem(STORAGE_KEY);
+                updateUIEntries();
+                showToast('🗑️ Dados locais removidos', 'success');
+                sounds.click();
+            }
+        });
+
+        $('pauseBtn').addEventListener('click', () => {
+            if(isPaused) resumeGame();
+            else pauseGame();
+        });
+
+        $('hintBtn').addEventListener('click', giveHint);
+        $('levelsBtn').addEventListener('click', () => {
+            showLevelSelector();
+            sounds.click();
+        });
+        
+        $('resetGame').addEventListener('click', () => {
+            if(confirm('🔄 Reiniciar o nível atual?')){
+                initGame(currentLevel);
+                showToast('🔄 Jogo reiniciado!', 'success');
+                sounds.click();
+            }
+        });
     });
 
     window.resumeGame = resumeGame;
 
     // ===== FUNÇÕES DO JOGO =====
     function openGame(nome){
-      console.log('Abrindo jogo para:', nome);
-      $('gameCard').style.display = 'block';
-      currentUserName = nome;
-      currentLevel = 0;
-      hintsRemaining = 3;
-      $('hintCount').textContent = hintsRemaining;
-      $('hintBtn').disabled = false;
-      $('hintBtn').style.opacity = '1';
-      pausedTime = 0;
-      isPaused = false;
-      
-      if (isZenMode) {
-        $('zenBadge').style.display = 'inline-flex';
-      }
-      
-      startTimer();
-      initGame(currentLevel);
-      
-      setTimeout(() => {
-        window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
-      }, 100);
-      
-      showToast('🎮 Jogo iniciado! Boa sorte!', 'success');
+        console.log('Abrindo jogo para:', nome);
+        $('gameCard').style.display = 'block';
+        currentUserName = nome;
+        currentLevel = 0;
+        hintsRemaining = 3;
+        gameScore = 0;
+        comboCount = 0;
+        lastWordTime = 0;
+        $('hintCount').textContent = hintsRemaining;
+        $('currentScore').textContent = gameScore;
+        $('hintBtn').disabled = false;
+        $('hintBtn').style.opacity = '1';
+        pausedTime = 0;
+        isPaused = false;
+        sessionStart = Date.now();
+        
+        if (isZenMode) {
+            $('zenBadge').style.display = 'inline-flex';
+        }
+        
+        startTimer();
+        initGame(currentLevel);
+        displayAchievements();
+        
+        setTimeout(() => {
+            window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
+        }, 100);
+        
+        showToast('🎮 Jogo iniciado! Boa sorte!', 'success');
+        sounds.levelUp();
     }
 
     function initGame(levelIndex){
-      const level = GAME_LEVELS[levelIndex];
-      GRID_SIZE = level.size;
-      WORDS = level.words;
-      $('gameTitle').textContent = level.title;
-      $('levelDisplay').textContent = `Nível ${levelIndex + 1}`;
-      
-      found.clear();
-      selection = null;
-      placedWords = [];
-      grid = Array.from({length: GRID_SIZE}, () => Array.from({length: GRID_SIZE}, () => ' '));
-      
-      const list = WORDS.slice();
-      for(const w of list) placeWord(w);
-      
-      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      for(let r = 0; r < GRID_SIZE; r++){
-        for(let c = 0; c < GRID_SIZE; c++){
-          if(grid[r][c] === ' '){
-            grid[r][c] = letters.charAt(Math.floor(Math.random() * letters.length));
-          }
+        const level = GAME_LEVELS[levelIndex];
+        GRID_SIZE = level.size;
+        WORDS = level.words;
+        $('gameTitle').textContent = level.title;
+        $('levelDisplay').textContent = `Nível ${levelIndex + 1}`;
+        
+        found.clear();
+        selection = null;
+        placedWords = [];
+        grid = Array.from({length: GRID_SIZE}, () => Array.from({length: GRID_SIZE}, () => ' '));
+        
+        const list = WORDS.slice();
+        for(const w of list) placeWord(w);
+        
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        for(let r = 0; r < GRID_SIZE; r++){
+            for(let c = 0; c < GRID_SIZE; c++){
+                if(grid[r][c] === ' '){
+                    grid[r][c] = letters.charAt(Math.floor(Math.random() * letters.length));
+                }
+            }
         }
-      }
-      
-      renderGrid();
-      renderWords();
-      updateFoundCount();
-      updateProgressBar();
-      
-      if(levelIndex === 0){
-        pausedTime = 0;
-        startTimer();
-      }
+        
+        renderGrid();
+        renderWords();
+        updateFoundCount();
+        updateProgressBar();
+        updateAccuracy();
+        
+        if(levelIndex === 0){
+            pausedTime = 0;
+            startTimer();
+        }
     }
 
     function placeWord(word){
-      const w = word.toUpperCase();
-      const directions = [[0,1], [1,0], [1,1], [-1,1], [0,-1], [-1,0], [-1,-1], [1,-1]];
-      const maxAttempts = 500;
-      
-      for(let attempt = 0; attempt < maxAttempts; attempt++){
-        const dir = directions[Math.floor(Math.random() * directions.length)];
-        const len = w.length;
-        const r = Math.floor(Math.random() * GRID_SIZE);
-        const c = Math.floor(Math.random() * GRID_SIZE);
-        const endR = r + dir[0] * (len - 1);
-        const endC = c + dir[1] * (len - 1);
+        const w = word.toUpperCase();
+        const directions = [[0,1], [1,0], [1,1], [-1,1], [0,-1], [-1,0], [-1,-1], [1,-1]];
+        const maxAttempts = 500;
         
-        if(endR < 0 || endR >= GRID_SIZE || endC < 0 || endC >= GRID_SIZE) continue;
-        
-        let ok = true;
-        for(let i = 0; i < len; i++){
-          const rr = r + dir[0] * i;
-          const cc = c + dir[1] * i;
-          const ch = grid[rr][cc];
-          if(ch !== ' ' && ch !== w[i]){
-            ok = false;
-            break;
-          }
+        for(let attempt = 0; attempt < maxAttempts; attempt++){
+            const dir = directions[Math.floor(Math.random() * directions.length)];
+            const len = w.length;
+            const r = Math.floor(Math.random() * GRID_SIZE);
+            const c = Math.floor(Math.random() * GRID_SIZE);
+            const endR = r + dir[0] * (len - 1);
+            const endC = c + dir[1] * (len - 1);
+            
+            if(endR < 0 || endR >= GRID_SIZE || endC < 0 || endC >= GRID_SIZE) continue;
+            
+            let ok = true;
+            for(let i = 0; i < len; i++){
+                const rr = r + dir[0] * i;
+                const cc = c + dir[1] * i;
+                const ch = grid[rr][cc];
+                if(ch !== ' ' && ch !== w[i]){
+                    ok = false;
+                    break;
+                }
+            }
+            
+            if(!ok) continue;
+            
+            for(let i = 0; i < len; i++){
+                const rr = r + dir[0] * i;
+                const cc = c + dir[1] * i;
+                grid[rr][cc] = w[i];
+            }
+            
+            placedWords.push({word: w, r, c, dr: dir[0], dc: dir[1], len});
+            return true;
         }
         
-        if(!ok) continue;
-        
-        for(let i = 0; i < len; i++){
-          const rr = r + dir[0] * i;
-          const cc = c + dir[1] * i;
-          grid[rr][cc] = w[i];
-        }
-        
-        placedWords.push({word: w, r, c, dr: dir[0], dc: dir[1], len});
-        return true;
-      }
-      
-      placedWords.push({word: w, notPlaced: true});
-      return false;
+        placedWords.push({word: w, notPlaced: true});
+        return false;
     }
 
     function renderGrid(){
-      const wrap = $('gridWrap');
-      wrap.innerHTML = '';
-      const g = document.createElement('div');
-      g.className = 'grid';
-      g.style.gridTemplateColumns = `repeat(${GRID_SIZE}, auto)`;
-      
-      for(let r = 0; r < GRID_SIZE; r++){
-        for(let c = 0; c < GRID_SIZE; c++){
-          const cell = document.createElement('div');
-          cell.className = 'cell';
-          cell.dataset.r = r;
-          cell.dataset.c = c;
-          cell.textContent = grid[r][c];
-          cell.addEventListener('click', onCellClick);
-          g.appendChild(cell);
+        const wrap = $('gridWrap');
+        wrap.innerHTML = '';
+        const g = document.createElement('div');
+        g.className = 'grid';
+        g.style.gridTemplateColumns = `repeat(${GRID_SIZE}, auto)`;
+        
+        for(let r = 0; r < GRID_SIZE; r++){
+            for(let c = 0; c < GRID_SIZE; c++){
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.r = r;
+                cell.dataset.c = c;
+                cell.textContent = grid[r][c];
+                cell.addEventListener('click', onCellClick);
+                g.appendChild(cell);
+            }
         }
-      }
-      
-      wrap.appendChild(g);
-      refreshHighlights();
+        
+        wrap.appendChild(g);
+        refreshHighlights();
     }
 
     function renderWords(){
-      const node = $('words');
-      node.innerHTML = '';
-      for(const w of placedWords){
-        const div = document.createElement('div');
-        div.className = 'word';
-        div.textContent = w.word;
-        div.id = 'word_' + w.word;
-        node.appendChild(div);
-      }
+        const node = $('words');
+        node.innerHTML = '';
+        for(const w of placedWords){
+            const div = document.createElement('div');
+            div.className = 'word';
+            div.textContent = w.word;
+            div.id = 'word_' + w.word;
+            node.appendChild(div);
+        }
     }
 
     function onCellClick(e){
-      if(isPaused) return;
-      
-      const r = parseInt(e.currentTarget.dataset.r, 10);
-      const c = parseInt(e.currentTarget.dataset.c, 10);
-      
-      if(!selection){
-        selection = {r1: r, c1: c};
-      } else {
-        selection.r2 = r;
-        selection.c2 = c;
-        checkSelection();
-        selection = null;
-      }
-      
-      refreshHighlights();
+        if(isPaused) return;
+        
+        const r = parseInt(e.currentTarget.dataset.r, 10);
+        const c = parseInt(e.currentTarget.dataset.c, 10);
+        
+        if(!selection){
+            selection = {r1: r, c1: c};
+            sounds.click();
+        } else {
+            selection.r2 = r;
+            selection.c2 = c;
+            checkSelection();
+            selection = null;
+        }
+        
+        refreshHighlights();
     }
 
     function refreshHighlights(){
-      document.querySelectorAll('.cell').forEach(el => {
-        el.classList.remove('selecting', 'found');
-      });
-      
-      if(selection){
-        const s = selection;
-        const start = document.querySelector(`.cell[data-r='${s.r1}'][data-c='${s.c1}']`);
-        if(start) start.classList.add('selecting');
-      }
-      
-      for(const f of found){
-        const pw = placedWords.find(p => p.word === f);
-        if(!pw || pw.notPlaced) continue;
+        document.querySelectorAll('.cell').forEach(el => {
+            el.classList.remove('selecting', 'found');
+        });
         
-        for(let i = 0; i < pw.len; i++){
-          const rr = pw.r + pw.dr * i;
-          const cc = pw.c + pw.dc * i;
-          const el = document.querySelector(`.cell[data-r='${rr}'][data-c='${cc}']`);
-          if(el) el.classList.add('found');
+        if(selection){
+            const s = selection;
+            const start = document.querySelector(`.cell[data-r='${s.r1}'][data-c='${s.c1}']`);
+            if(start) start.classList.add('selecting');
         }
         
-        const wel = $('word_' + pw.word);
-        if(wel) wel.classList.add('found');
-      }
+        for(const f of found){
+            const pw = placedWords.find(p => p.word === f);
+            if(!pw || pw.notPlaced) continue;
+            
+            for(let i = 0; i < pw.len; i++){
+                const rr = pw.r + pw.dr * i;
+                const cc = pw.c + pw.dc * i;
+                const el = document.querySelector(`.cell[data-r='${rr}'][data-c='${cc}']`);
+                if(el) el.classList.add('found');
+            }
+            
+            const wel = $('word_' + pw.word);
+            if(wel) wel.classList.add('found');
+        }
     }
 
     function checkSelection(){
-      if(!selection || selection.r2 === undefined) return;
-      
-      const r1 = selection.r1, c1 = selection.c1, r2 = selection.r2, c2 = selection.c2;
-      const dr = Math.sign(r2 - r1);
-      const dc = Math.sign(c2 - c1);
-      const lenR = Math.abs(r2 - r1) + 1;
-      const lenC = Math.abs(c2 - c1) + 1;
-      const len = Math.max(lenR, lenC);
-      
-      if(lenR !== 1 && lenC !== 1 && lenR !== lenC){
-        flashSelection(r1, c1, r2, c2);
-        return;
-      }
-
-      let s = '';
-      for(let i = 0; i < len; i++){
-        const rr = r1 + dr * i;
-        const cc = c1 + dc * i;
-        if(rr < 0 || rr >= GRID_SIZE || cc < 0 || cc >= GRID_SIZE) break;
-        s += grid[rr][cc];
-      }
-      
-      const rev = s.split('').reverse().join('');
-      const matched = placedWords.find(p => (p.word === s || p.word === rev) && !found.has(p.word));
-      
-      if(matched){
-        found.add(matched.word);
+        if(!selection || selection.r2 === undefined) return;
         
-        const firstCell = document.querySelector(`.cell[data-r='${matched.r}'][data-c='${matched.c}']`);
-        if(firstCell){
-          const rect = firstCell.getBoundingClientRect();
-          createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        totalSelections++;
+        
+        const r1 = selection.r1, c1 = selection.c1, r2 = selection.r2, c2 = selection.c2;
+        const dr = Math.sign(r2 - r1);
+        const dc = Math.sign(c2 - c1);
+        const lenR = Math.abs(r2 - r1) + 1;
+        const lenC = Math.abs(c2 - c1) + 1;
+        const len = Math.max(lenR, lenC);
+        
+        if(lenR !== 1 && lenC !== 1 && lenR !== lenC){
+            flashSelection(r1, c1, r2, c2);
+            updateAccuracy();
+            sounds.error();
+            return;
+        }
+
+        let s = '';
+        for(let i = 0; i < len; i++){
+            const rr = r1 + dr * i;
+            const cc = c1 + dc * i;
+            if(rr < 0 || rr >= GRID_SIZE || cc < 0 || cc >= GRID_SIZE) break;
+            s += grid[rr][cc];
         }
         
-        updateFoundCount();
-        updateProgressBar();
-        refreshHighlights();
-        showToast(`✅ Palavra encontrada: ${matched.word}`, 'success');
-        checkWin();
-      } else {
-        flashSelection(r1, c1, r2, c2);
-      }
+        const rev = s.split('').reverse().join('');
+        const matched = placedWords.find(p => (p.word === s || p.word === rev) && !found.has(p.word));
+        
+        if(matched){
+            correctSelections++;
+            found.add(matched.word);
+            
+            const firstCell = document.querySelector(`.cell[data-r='${matched.r}'][data-c='${matched.c}']`);
+            if(firstCell){
+                const rect = firstCell.getBoundingClientRect();
+                createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            }
+            
+            checkCombo();
+            const wordPoints = 100 + (matched.word.length * 10);
+            updateScore(wordPoints);
+            
+            updateFoundCount();
+            updateProgressBar();
+            updateAccuracy();
+            refreshHighlights();
+            showToast(`✅ Palavra encontrada: ${matched.word} (+${wordPoints} pts)`, 'success');
+            sounds.success();
+            checkWin();
+        } else {
+            flashSelection(r1, c1, r2, c2);
+            updateAccuracy();
+            sounds.error();
+        }
     }
 
     function flashSelection(r1, c1, r2, c2){
-      const dr = Math.sign(r2 - r1);
-      const dc = Math.sign(c2 - c1);
-      const len = Math.max(Math.abs(r2 - r1) + 1, Math.abs(c2 - c1) + 1);
-      const cells = [];
-      
-      for(let i = 0; i < len; i++){
-        const rr = r1 + dr * i;
-        const cc = c1 + dc * i;
-        const el = document.querySelector(`.cell[data-r='${rr}'][data-c='${cc}']`);
-        if(el){
-          el.classList.add('selecting');
-          cells.push(el);
+        const dr = Math.sign(r2 - r1);
+        const dc = Math.sign(c2 - c1);
+        const len = Math.max(Math.abs(r2 - r1) + 1, Math.abs(c2 - c1) + 1);
+        const cells = [];
+        
+        for(let i = 0; i < len; i++){
+            const rr = r1 + dr * i;
+            const cc = c1 + dc * i;
+            const el = document.querySelector(`.cell[data-r='${rr}'][data-c='${cc}']`);
+            if(el){
+                el.classList.add('selecting');
+                cells.push(el);
+            }
         }
-      }
-      
-      setTimeout(() => cells.forEach(el => el.classList.remove('selecting')), 400);
+        
+        setTimeout(() => cells.forEach(el => el.classList.remove('selecting')), 400);
     }
 
     function updateFoundCount(){
-      $('foundCount').textContent = `${found.size} / ${placedWords.length}`;
+        $('foundCount').textContent = `${found.size} / ${placedWords.length}`;
     }
 
     function updateProgressBar(){
-      const progress = (found.size / placedWords.length) * 100;
-      $('progressFill').style.width = progress + '%';
+        const progress = (found.size / placedWords.length) * 100;
+        $('progressFill').style.width = progress + '%';
+    }
+
+    function updateAccuracy(){
+        const accuracy = totalSelections > 0 ? (correctSelections / totalSelections * 100).toFixed(1) : 100;
+        $('accuracyDisplay').textContent = accuracy + '%';
     }
 
     function moveToNextLevel(){
-      currentLevel++;
-      if(currentLevel < GAME_LEVELS.length){
-        showToast(`🎉 Nível ${currentLevel} completo! Partiu Nível ${currentLevel + 1}!`, 'success');
-        setTimeout(() => {
-          initGame(currentLevel);
-          hintsRemaining = 3;
-          $('hintCount').textContent = hintsRemaining;
-          $('hintBtn').disabled = false;
-          $('hintBtn').style.opacity = '1';
-        }, 1500);
-      } else {
-        showToast(`🏆 PARABÉNS! Você completou todos os níveis!`, 'success');
-        stopTimer();
-        setTimeout(() => {
-          $('gameCard').style.display = 'none';
-        }, 3000);
-      }
+        currentLevel++;
+        if(currentLevel < GAME_LEVELS.length){
+            if(currentLevel >= unlockedLevels) {
+                unlockedLevels = currentLevel + 1;
+                saveProgress();
+            }
+            
+            showToast(`🎉 Nível ${currentLevel} completo! Partiu Nível ${currentLevel + 1}!`, 'success');
+            createConfetti();
+            sounds.levelUp();
+            
+            setTimeout(() => {
+                initGame(currentLevel);
+                hintsRemaining = 3;
+                gameScore = 0;
+                comboCount = 0;
+                $('hintCount').textContent = hintsRemaining;
+                $('currentScore').textContent = gameScore;
+                $('hintBtn').disabled = false;
+                $('hintBtn').style.opacity = '1';
+            }, 2000);
+        } else {
+            showToast(`🏆 PARABÉNS! Você completou todos os níveis!`, 'success');
+            createConfetti();
+            sounds.levelUp();
+            stopTimer();
+            
+            setTimeout(() => {
+                showStatsModal();
+            }, 2000);
+        }
     }
 
     function checkWin(){
-      if(found.size >= placedWords.length){
-        const timeTakenSeconds = isZenMode ? 0 : ((Date.now() - startTime) / 1000);
-        
-        // Salvar no histórico
-        saveGameHistory({
-          level: currentLevel,
-          playerName: currentUserName,
-          foundWords: found.size,
-          totalWords: placedWords.length,
-          time: timeTakenSeconds,
-          completed: true,
-          zenMode: isZenMode
-        });
-        
-        if(currentLevel === 0 && currentRowId && !isZenMode){
-          const gameData = {
-            type: 'gameFinished',
-            rowId: currentRowId,
-            foundCount: found.size,
-            timeTakenSeconds: parseFloat(timeTakenSeconds.toFixed(2)),
-            playerName: currentUserName
-          };
-          
-          console.log('Enviando resultado do jogo:', gameData);
-          postData(gameData);
-          currentRowId = null;
+        if(found.size >= placedWords.length){
+            const timeTakenSeconds = isZenMode ? 0 : ((Date.now() - startTime) / 1000);
+            const levelScore = calculateScore(timeTakenSeconds, 3 - hintsRemaining, currentLevel);
+            
+            updateScore(levelScore);
+            checkAchievements();
+            
+            saveGameHistory({
+                level: currentLevel,
+                playerName: currentUserName,
+                foundWords: found.size,
+                totalWords: placedWords.length,
+                time: timeTakenSeconds,
+                completed: true,
+                zenMode: isZenMode,
+                score: gameScore
+            });
+            
+            if(currentLevel === 0 && currentRowId && !isZenMode){
+                const gameData = {
+                    type: 'gameFinished',
+                    rowId: currentRowId,
+                    foundCount: found.size,
+                    timeTakenSeconds: parseFloat(timeTakenSeconds.toFixed(2)),
+                    playerName: currentUserName,
+                    score: gameScore
+                };
+                
+                console.log('Enviando resultado do jogo:', gameData);
+                postData(gameData).then(() => {
+                    loadLeaderboard();
+                });
+                currentRowId = null;
+            }
+            
+            setTimeout(moveToNextLevel, 1000);
         }
-        
-        setTimeout(moveToNextLevel, 1000);
-      }
     }
+
+    // ===== ANALYTICS =====
+    function trackGameMetrics() {
+        const playTime = (Date.now() - sessionStart) / 1000;
+        const metrics = {
+            type: 'metrics',
+            averageTimePerWord: found.size > 0 ? (playTime / found.size).toFixed(2) : 0,
+            hintsUsedPerLevel: (3 - hintsRemaining) / (currentLevel + 1),
+            accuracy: totalSelections > 0 ? (correctSelections / totalSelections * 100).toFixed(1) : 100,
+            playTime: playTime.toFixed(2),
+            totalScore: totalScore,
+            level: currentLevel
+        };
+        
+        console.log('Métricas do jogo:', metrics);
+        postData(metrics);
+    }
+
+    // Enviar métricas ao fechar a página
+    window.addEventListener('beforeunload', trackGameMetrics);
   </script>
 </body>
 </html>
