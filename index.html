@@ -486,6 +486,7 @@
         max-height:80vh;
         overflow-y:auto;
         border:2px solid var(--border);
+        position:relative;
     }
     
     @keyframes scaleIn{
@@ -557,10 +558,12 @@
         margin-top:10px;
     }
     
+    .difficulty-infantil{background:#ec4899;color:white}
     .difficulty-facil{background:#10b981;color:white}
     .difficulty-medio{background:#f59e0b;color:white}
     .difficulty-dificil{background:#ef4444;color:white}
     .difficulty-muito-dificil{background:#8b5cf6;color:white}
+    .difficulty-extremo{background:#dc2626;color:white}
     
     .history-list{
         list-style:none;
@@ -729,6 +732,22 @@
         background:rgba(59, 130, 246, 0.1);
         border-radius:12px;
         border-left:4px solid var(--accent);
+        text-align:left;
+    }
+
+    .category-section{
+        margin-bottom:30px;
+    }
+
+    .category-title{
+        font-size:1.5rem;
+        color:var(--primary);
+        margin-bottom:15px;
+        padding-bottom:10px;
+        border-bottom:3px solid var(--accent);
+        display:flex;
+        align-items:center;
+        gap:10px;
     }
 
     @media (max-width:768px){
@@ -765,12 +784,12 @@
       <h2 style="margin-bottom:15px">📝 Registrar Participante</h2>
       <form id="cadForm">
         <div>
-          <label for="nome">👤 Nome completo</label>
+          <label for="nome">👤 Nome completo *</label>
           <input id="nome" name="nome" required placeholder="Seu nome para o Ranking" />
         </div>
         <div>
-          <label for="dob">🎂 Data de nascimento</label>
-          <input id="dob" name="dob" type="date" required />
+          <label for="dob">🎂 Data de nascimento (opcional)</label>
+          <input id="dob" name="dob" type="date" placeholder="Opcional" />
         </div>
         <div class="full">
           <label for="datetime">📅 Data e hora (Registro)</label>
@@ -794,7 +813,7 @@
         <h2 style="margin-bottom:5px">🏆 Ranking Nacional de Líderes</h2>
         <div id="leaderboardStatus" style="color:var(--muted);font-size:0.9rem;margin-top:10px">Carregando ranking...</div>
         <ul id="leaderboardList" class="leaderboard-list"></ul>
-        <button id="refreshLeaderboard" style="margin-top:15px;background:var(--accent);color:white;padding:10px 20px;border-radius:8px;width:100%">🔄 Atualizar Ranking</button>
+        <button id="refreshLeaderboard" style="margin-top:15px;background:var(--accent);color:white;padding:10px 20px;border-radius:8px;width:100%;cursor:pointer">🔄 Atualizar Ranking</button>
     </section>
 
     <section class="card" id="gameCard" style="display:none">
@@ -847,9 +866,6 @@
           <div id="words" class="words-list"></div>
           <div style="margin-top:25px;padding:15px;background:rgba(59, 130, 246, 0.1);border-radius:12px;border-left:4px solid var(--accent)">
                 <strong style="color:var(--accent)">💡 Dica:</strong>
-                <p style="margin-top:8px;color:var(--muted);font-size:0.9rem;line-height:1.5">
-                    Clique na primeira letra e depois na última para selecionar. Funciona em linhas, colunas e diagonais!
-                </p>
                 <p style="margin-top:8px;color:var(--muted);font-size:0.85rem">
                     <strong>Atalhos:</strong> ESC = Pausar | H = Dica | F = Tela Cheia
                 </p>
@@ -870,15 +886,22 @@
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3ZPPBR4VWrw2KD_3gl57nhsijv4EWpRnETeLY18p-o9a2DuUv1gw1AJ1AK0Bc5k4z/exec';
 
     const GAME_LEVELS = [
-        { title: 'Nível 1: Forças Armadas', size: 12, words: ['BRASIL', 'AMAZONAS', 'MANAUS', 'POLICIA', 'SEGURANCA', 'FORCA', 'PATENTE', 'ALERTA', 'VIATURA', 'PATRIA'], difficulty: 'Fácil', color: '#10b981' },
-        { title: 'Nível 2: Tecnologia', size: 14, words: ['PROGRAMA', 'ALGORITMO', 'COMPUTADOR', 'INTERNET', 'HARDWARE', 'SOFTWARE', 'APLICACAO', 'SERVIDOR', 'SEGURANCA', 'ENGENHEIRO', 'DATABASE', 'PYTHON'], difficulty: 'Médio', color: '#f59e0b' },
-        { title: 'Nível 3: Cidades Globais', size: 16, words: ['BRASILIA', 'SAOPAULO', 'RIODEJANEIRO', 'PARIS', 'TOKIO', 'LONDRES', 'NYORQUE', 'SIDNEY', 'PEQUIM', 'MOSCOU', 'DUBAI', 'BERLIM', 'LISBOA', 'MADRI'], difficulty: 'Difícil', color: '#ef4444' },
-        { title: 'Nível 4: Animais', size: 18, words: ['ELEFANTE', 'RINOCERONTE', 'HIPOPOTAMO', 'GIRAFA', 'LEOPARDO', 'CROCODILO', 'TUBARAO', 'AGUIA', 'PINGUIM', 'GOLFINHO', 'BORBOLETA', 'FORMIGA', 'CACHORRO', 'TARTARUGA'], difficulty: 'Muito Difícil', color: '#8b5cf6' }
+        { title: 'Infantil 1: Desenhos Animados', size: 10, words: ['MICKEY', 'ELSA', 'BOB', 'PEPPA', 'SONIC', 'PIKACHU', 'DORA', 'HULK'], difficulty: 'Infantil', color: '#ec4899', icon: '🎨', category: 'infantil' },
+        { title: 'Infantil 2: Super Heróis', size: 10, words: ['BATMAN', 'HOMEMARANHA', 'SUPERMAN', 'CAPITAO', 'MULHERMARAVILHA', 'FLASH', 'THOR', 'PANTERA'], difficulty: 'Infantil', color: '#ec4899', icon: '🦸', category: 'infantil' },
+        { title: 'Brasil 1: Forças Armadas', size: 12, words: ['BRASIL', 'AMAZONAS', 'MANAUS', 'POLICIA', 'SEGURANCA', 'FORCA', 'PATENTE', 'ALERTA', 'VIATURA', 'PATRIA'], difficulty: 'Fácil', color: '#10b981', icon: '🛡️', category: 'brasil' },
+        { title: 'Brasil 2: Estados', size: 12, words: ['ACRE', 'BAHIA', 'CEARA', 'GOIAS', 'PARANA', 'PERNAMBUCO', 'RIOGRANDE', 'SERGIPE', 'TOCANTINS', 'MARANHAO'], difficulty: 'Fácil', color: '#10b981', icon: '🇧🇷', category: 'brasil' },
+        { title: 'Tecnologia 1: Programação', size: 14, words: ['PROGRAMA', 'ALGORITMO', 'COMPUTADOR', 'INTERNET', 'HARDWARE', 'SOFTWARE', 'APLICACAO', 'SERVIDOR', 'SEGURANCA', 'ENGENHEIRO', 'DATABASE', 'PYTHON'], difficulty: 'Médio', color: '#f59e0b', icon: '💻', category: 'tecnologia' },
+        { title: 'Tecnologia 2: Redes Sociais', size: 14, words: ['FACEBOOK', 'INSTAGRAM', 'TWITTER', 'TIKTOK', 'YOUTUBE', 'WHATSAPP', 'TELEGRAM', 'LINKEDIN', 'PINTEREST', 'SNAPCHAT', 'REDDIT', 'DISCORD'], difficulty: 'Médio', color: '#f59e0b', icon: '📱', category: 'tecnologia' },
+        { title: 'Mundo 1: Cidades', size: 16, words: ['BRASILIA', 'SAOPAULO', 'RIODEJANEIRO', 'PARIS', 'TOKIO', 'LONDRES', 'NYORQUE', 'SIDNEY', 'PEQUIM', 'MOSCOU', 'DUBAI', 'BERLIM', 'LISBOA', 'MADRI'], difficulty: 'Difícil', color: '#ef4444', icon: '🌍', category: 'mundo' },
+        { title: 'Mundo 2: Países', size: 16, words: ['BRASIL', 'ARGENTINA', 'PORTUGAL', 'ESPANHA', 'ALEMANHA', 'ITALIA', 'FRANCA', 'JAPAO', 'CHINA', 'AUSTRALIA', 'CANADA', 'MEXICO', 'INDIA', 'RUSSIA'], difficulty: 'Difícil', color: '#ef4444', icon: '🗺️', category: 'mundo' },
+        { title: 'Natureza 1: Animais', size: 18, words: ['ELEFANTE', 'RINOCERONTE', 'HIPOPOTAMO', 'GIRAFA', 'LEOPARDO', 'CROCODILO', 'TUBARAO', 'AGUIA', 'PINGUIM', 'GOLFINHO', 'BORBOLETA', 'FORMIGA', 'CACHORRO', 'TARTARUGA'], difficulty: 'Muito Difícil', color: '#8b5cf6', icon: '🦁', category: 'natureza' },
+        { title: 'Natureza 2: Flores', size: 18, words: ['ORQUIDEA', 'GIRASSOL', 'MARGARIDA', 'TULIPA', 'JASMIM', 'LAVANDA', 'HORTENCIA', 'AZALEIA', 'BEGONIA', 'CRISANTEMO', 'DALIA', 'GARDENIA', 'HIBISCO', 'PETUNIA'], difficulty: 'Muito Difícil', color: '#8b5cf6', icon: '🌺', category: 'natureza' },
+        { title: 'Extremo 1: Ciências', size: 20, words: ['ASTRONOMIA', 'BIOLOGIA', 'QUIMICA', 'FISICA', 'MATEMATICA', 'GEOLOGIA', 'ECOLOGIA', 'GENETICA', 'NEUROCIENCIA', 'PALEONTOLOGIA', 'ZOOLOGIA', 'BOTANICA', 'MICROBIOLOGIA', 'ANTROPOLOGIA', 'ARQUEOLOGIA'], difficulty: 'Extremo', color: '#dc2626', icon: '🔬', category: 'extremo' },
+        { title: 'Extremo 2: Profissões', size: 20, words: ['ENGENHEIRO', 'ARQUITETO', 'ADVOGADO', 'MEDICO', 'ENFERMEIRO', 'PROFESSOR', 'DENTISTA', 'VETERINARIO', 'PSICOLOGO', 'FARMACEUTICO', 'FISIOTERAPEUTA', 'NUTRICIONISTA', 'CONTADOR', 'PROGRAMADOR', 'DESIGNER'], difficulty: 'Extremo', color: '#dc2626', icon: '💼', category: 'extremo' }
     ];
 
     let GRID_SIZE = GAME_LEVELS[0].size;
     let WORDS = GAME_LEVELS[0].words;
-
     let currentRowId = null; 
     let startTime = null;
     let timerInterval = null;
@@ -898,7 +921,6 @@
     let totalSelections = 0;
     let achievements = [];
     let unlockedLevels = 1;
-
     let grid = [];
     let placedWords = [];
     let selection = null;
@@ -906,7 +928,6 @@
 
     const $ = id => document.getElementById(id);
 
-    // ===== SONS DO JOGO =====
     const sounds = {
         click: () => playBeep(800, 0.1, 0.05),
         success: () => playBeep(1000, 0.2, 0.1),
@@ -929,16 +950,12 @@
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
-            
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-            
             oscillator.frequency.value = frequency;
             oscillator.type = 'sine';
-            
             gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-            
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + duration);
         } catch (e) {
@@ -946,7 +963,6 @@
         }
     }
 
-    // ===== TEMA ESCURO/CLARO =====
     function loadTheme() {
         const isDark = localStorage.getItem(THEME_KEY) === 'true';
         if (isDark) {
@@ -976,21 +992,17 @@
             document.documentElement.requestFullscreen().catch(err => {
                 showToast('⚠️ Erro ao ativar tela cheia', 'error');
             });
-            $('fullscreenToggle').textContent = '⛶';
         } else {
             document.exitFullscreen();
-            $('fullscreenToggle').textContent = '⛶';
         }
     }
 
-    // ===== SISTEMA DE PONTUAÇÃO =====
     function calculateScore(timeTaken, hintsUsed, level) {
         const baseScore = 1000;
         const timeBonus = Math.max(0, 500 - timeTaken * 2);
         const hintPenalty = hintsUsed * 100;
         const levelMultiplier = (level + 1) * 1.5;
         const comboBonus = comboCount * 50;
-        
         return Math.round((baseScore + timeBonus - hintPenalty + comboBonus) * levelMultiplier);
     }
 
@@ -1001,7 +1013,6 @@
         saveProgress();
     }
 
-    // ===== SISTEMA DE COMBO =====
     function checkCombo() {
         const now = Date.now();
         if (now - lastWordTime < 5000) {
@@ -1027,34 +1038,27 @@
         setTimeout(() => comboBadge.remove(), 1000);
     }
 
-    // ===== SISTEMA DE CONQUISTAS =====
     function checkAchievements() {
         const newAchievements = [];
-        
         if (hintsRemaining === 3 && found.size === placedWords.length) {
             newAchievements.push({ icon: '🧠', title: 'Gênio', desc: 'Completou sem usar dicas!' });
         }
-        
         if (!isZenMode && gameScore >= 5000) {
             newAchievements.push({ icon: '⚡', title: 'Velocista', desc: 'Mais de 5000 pontos!' });
         }
-        
         if (comboCount >= 5) {
             newAchievements.push({ icon: '🔥', title: 'Combo Master', desc: '5 palavras seguidas!' });
         }
-        
         const accuracy = totalSelections > 0 ? (correctSelections / totalSelections * 100) : 100;
         if (accuracy === 100 && totalSelections >= 5) {
             newAchievements.push({ icon: '🎯', title: 'Perfeccionista', desc: '100% de precisão!' });
         }
-        
         newAchievements.forEach(ach => {
             if (!achievements.find(a => a.title === ach.title)) {
                 achievements.push(ach);
                 showAchievement(ach);
             }
         });
-        
         displayAchievements();
         saveProgress();
     }
@@ -1075,22 +1079,14 @@
             container.innerHTML = '';
             return;
         }
-        
         container.innerHTML = '<div style="margin-bottom:10px;font-weight:600;color:var(--primary)">🏆 Conquistas:</div>' +
-            achievements.map(ach => 
-                `<span class="achievement-badge">${ach.icon} ${ach.title}</span>`
-            ).join('');
+            achievements.map(ach => `<span class="achievement-badge">${ach.icon} ${ach.title}</span>`).join('');
     }
 
-    // ===== HISTÓRICO DE PARTIDAS =====
     function saveGameHistory(data) {
         try {
             const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
-            history.unshift({
-                ...data,
-                date: new Date().toISOString(),
-                score: gameScore
-            });
+            history.unshift({...data, date: new Date().toISOString(), score: gameScore});
             if (history.length > 50) history.pop();
             localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
         } catch (e) {
@@ -1108,20 +1104,16 @@
 
     function showHistoryModal() {
         const history = loadGameHistory();
-        
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
         overlay.id = 'historyModal';
-        
         const modal = document.createElement('div');
         modal.className = 'modal';
-        modal.style.position = 'relative';
-        
         modal.innerHTML = `
             <button class="modal-close" onclick="closeModal('historyModal')">×</button>
             <h2>📜 Histórico de Partidas</h2>
             <div style="margin-bottom:15px;display:flex;gap:10px;justify-content:center">
-                <button onclick="clearHistory()" style="background:var(--danger);color:white;padding:8px 16px;border-radius:8px">🗑️ Limpar Histórico</button>
+                <button onclick="clearHistory()" style="background:var(--danger);color:white;padding:8px 16px;border-radius:8px;cursor:pointer">🗑️ Limpar Histórico</button>
             </div>
             ${history.length === 0 ? `
                 <div class="empty-state">
@@ -1131,33 +1123,28 @@
                 </div>
             ` : `
                 <ul class="history-list">
-                    ${history.map((game, index) => {
+                    ${history.map(game => {
                         const date = new Date(game.date);
                         const dateStr = date.toLocaleDateString('pt-BR');
                         const timeStr = date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
                         const levelInfo = GAME_LEVELS[game.level] || GAME_LEVELS[0];
-                        
                         return `
                             <li class="history-item">
                                 <div class="history-icon">${game.completed ? '✅' : '⏸️'}</div>
                                 <div class="history-info">
                                     <h4>${levelInfo.title}</h4>
-                                    <p>
-                                        ${game.playerName} • ${game.foundWords}/${game.totalWords} palavras • ${game.score || 0} pts
+                                    <p>${game.playerName} • ${game.foundWords}/${game.totalWords} palavras • ${game.score || 0} pts
                                         ${game.zenMode ? ' • <span class="zen-badge" style="font-size:0.8rem;padding:3px 8px">🧘 Zen</span>' : ''}
                                     </p>
                                     <p style="font-size:0.85rem">${dateStr} às ${timeStr}</p>
                                 </div>
-                                <div class="history-time">
-                                    ${game.zenMode ? '♾️' : game.time ? game.time.toFixed(2) + 's' : '-'}
-                                </div>
+                                <div class="history-time">${game.zenMode ? '♾️' : game.time ? game.time.toFixed(2) + 's' : '-'}</div>
                             </li>
                         `;
                     }).join('')}
                 </ul>
             `}
         `;
-        
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
     }
@@ -1170,111 +1157,45 @@
         }
     }
 
-    // ===== ESTATÍSTICAS =====
     function showStatsModal() {
         const history = loadGameHistory();
         const progress = loadProgress();
-        
         const totalGames = history.length;
         const completedGames = history.filter(g => g.completed).length;
         const totalTime = history.reduce((sum, g) => sum + (g.time || 0), 0);
         const avgTime = totalGames > 0 ? (totalTime / totalGames).toFixed(2) : 0;
-        const bestTime = history.length > 0 ? Math.min(...history.map(g => g.time || 999)).toFixed(2) : 0;
+        const bestTime = history.length > 0 ? Math.min(...history.filter(g => g.time > 0).map(g => g.time || 999)).toFixed(2) : 0;
         const accuracy = totalSelections > 0 ? (correctSelections / totalSelections * 100).toFixed(1) : 100;
         
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
         overlay.id = 'statsModal';
-        
         const modal = document.createElement('div');
         modal.className = 'modal';
-        modal.style.position = 'relative';
-        
         modal.innerHTML = `
             <button class="modal-close" onclick="closeModal('statsModal')">×</button>
             <h2>📊 Suas Estatísticas</h2>
-            
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value">${totalGames}</div>
-                    <div class="stat-label">Partidas Jogadas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${completedGames}</div>
-                    <div class="stat-label">Completadas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${progress.totalScore || 0}</div>
-                    <div class="stat-label">Pontos Total</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${avgTime}s</div>
-                    <div class="stat-label">Tempo Médio</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${bestTime}s</div>
-                    <div class="stat-label">Melhor Tempo</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value">${accuracy}%</div>
-                    <div class="stat-label">Precisão</div>
-                </div>
+                <div class="stat-card"><div class="stat-value">${totalGames}</div><div class="stat-label">Partidas Jogadas</div></div>
+                <div class="stat-card"><div class="stat-value">${completedGames}</div><div class="stat-label">Completadas</div></div>
+                <div class="stat-card"><div class="stat-value">${progress.totalScore || 0}</div><div class="stat-label">Pontos Total</div></div>
+                <div class="stat-card"><div class="stat-value">${avgTime}s</div><div class="stat-label">Tempo Médio</div></div>
+                <div class="stat-card"><div class="stat-value">${bestTime}s</div><div class="stat-label">Melhor Tempo</div></div>
+                <div class="stat-card"><div class="stat-value">${accuracy}%</div><div class="stat-label">Precisão</div></div>
             </div>
-            
             <div style="margin-top:30px">
                 <h3 style="color:var(--primary);margin-bottom:15px">🏆 Conquistas Desbloqueadas</h3>
-                ${achievements.length === 0 ? `
-                    <div class="empty-state">
-                        <p style="color:var(--muted)">Jogue para desbloquear conquistas!</p>
-                    </div>
-                ` : `
-                    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
-                        ${achievements.map(ach => 
-                            `<div class="achievement-badge">${ach.icon} ${ach.title}</div>`
-                        ).join('')}
-                    </div>
-                `}
-            </div>
-            
-            <div style="margin-top:30px">
-                <h3 style="color:var(--primary);margin-bottom:15px">🎯 Progresso por Nível</h3>
-                ${GAME_LEVELS.map((level, idx) => {
-                    const levelGames = history.filter(g => g.level === idx && g.completed);
-                    const levelBestTime = levelGames.length > 0 ? 
-                        Math.min(...levelGames.map(g => g.time || 999)).toFixed(2) : '-';
-                    const levelBestScore = levelGames.length > 0 ?
-                        Math.max(...levelGames.map(g => g.score || 0)) : 0;
-                    
-                    return `
-                        <div style="padding:10px;background:var(--card);border:2px solid var(--border);border-radius:10px;margin-bottom:10px">
-                            <div style="display:flex;justify-content:space-between;align-items:center">
-                                <span style="font-weight:600">${level.title}</span>
-                                <div>
-                                    <span style="color:var(--accent);margin-right:15px">⏱️ ${levelBestTime}s</span>
-                                    <span style="color:#fbbf24">⭐ ${levelBestScore} pts</span>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
+                ${achievements.length === 0 ? `<div class="empty-state"><p style="color:var(--muted)">Jogue para desbloquear conquistas!</p></div>` : 
+                    `<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">${achievements.map(ach => `<div class="achievement-badge">${ach.icon} ${ach.title}</div>`).join('')}</div>`}
             </div>
         `;
-        
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
     }
 
-    // ===== PROGRESSÃO E SALVAMENTO =====
     function saveProgress() {
         try {
-            localStorage.setItem(PROGRESS_KEY, JSON.stringify({
-                currentLevel,
-                unlockedLevels,
-                totalScore,
-                achievements,
-                correctSelections,
-                totalSelections
-            }));
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify({currentLevel, unlockedLevels, totalScore, achievements, correctSelections, totalSelections}));
         } catch (e) {
             console.error('Erro ao salvar progresso:', e);
         }
@@ -1294,15 +1215,28 @@
         }
     }
 
-    // ===== SELEÇÃO DE NÍVEIS =====
     function showLevelSelector() {
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
         overlay.id = 'levelModal';
-        
         const modal = document.createElement('div');
         modal.className = 'modal';
-        modal.style.position = 'relative';
+        modal.style.maxWidth = '900px';
+        
+        const categories = {
+            infantil: { name: 'Infantil', icon: '👶', levels: [] },
+            brasil: { name: 'Brasil', icon: '🇧🇷', levels: [] },
+            tecnologia: { name: 'Tecnologia', icon: '💻', levels: [] },
+            mundo: { name: 'Mundo', icon: '🌍', levels: [] },
+            natureza: { name: 'Natureza', icon: '🌿', levels: [] },
+            extremo: { name: 'Extremo', icon: '🔥', levels: [] }
+        };
+        
+        GAME_LEVELS.forEach((level, index) => {
+            if (categories[level.category]) {
+                categories[level.category].levels.push({ ...level, index });
+            }
+        });
         
         modal.innerHTML = `
             <button class="modal-close" onclick="closeModal('levelModal')">×</button>
@@ -1315,29 +1249,32 @@
                     <span style="font-size:1.1rem">🧘 Modo Zen (Sem Cronômetro)</span>
                 </label>
             </div>
-            <div class="level-grid">
-                ${GAME_LEVELS.map((level, index) => {
-                    const difficultyClass = level.difficulty.toLowerCase().replace(/\s+/g, '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                    const isLocked = index >= unlockedLevels;
-                    return `
-                        <div class="level-card ${isLocked ? 'locked' : ''}" 
-                             onclick="${isLocked ? '' : `selectLevel(${index})`}" 
-                             style="border-color:${level.color};${isLocked ? 'opacity:0.5' : ''}">
-                            <div style="font-size:2.5rem;margin-bottom:10px">
-                                ${isLocked ? '🔒' : (index === 0 ? '🛡️' : index === 1 ? '💻' : index === 2 ? '🌍' : '🦁')}
-                            </div>
-                            <h3 style="margin:10px 0;color:var(--primary);font-size:1.1rem">${level.title.split(':')[1]}</h3>
-                            <div class="level-difficulty difficulty-${difficultyClass}">${level.difficulty}</div>
-                            <p style="color:var(--muted);font-size:0.9rem;margin-top:10px">
-                                ${level.words.length} palavras • Grade ${level.size}x${level.size}
-                            </p>
-                            ${isLocked ? '<p style="color:var(--warning);margin-top:10px;font-size:0.85rem">Complete o nível anterior</p>' : ''}
+            ${Object.entries(categories).map(([key, cat]) => {
+                if (cat.levels.length === 0) return '';
+                return `
+                    <div class="category-section">
+                        <div class="category-title">${cat.icon} ${cat.name}</div>
+                        <div class="level-grid" style="grid-template-columns:repeat(2, 1fr)">
+                            ${cat.levels.map(level => {
+                                const isLocked = level.index >= unlockedLevels;
+                                const difficultyClass = level.difficulty.toLowerCase().replace(/\s+/g, '-');
+                                return `
+                                    <div class="level-card ${isLocked ? 'locked' : ''}" 
+                                         onclick="${isLocked ? '' : `selectLevel(${level.index})`}" 
+                                         style="border-color:${level.color}">
+                                        <div style="font-size:2.5rem;margin-bottom:10px">${isLocked ? '🔒' : level.icon}</div>
+                                        <h3 style="margin:10px 0;color:var(--primary);font-size:1rem">${level.title.split(':')[1]}</h3>
+                                        <div class="level-difficulty difficulty-${difficultyClass}">${level.difficulty}</div>
+                                        <p style="color:var(--muted);font-size:0.85rem;margin-top:10px">${level.words.length} palavras • Grade ${level.size}x${level.size}</p>
+                                        ${isLocked ? '<p style="color:var(--warning);margin-top:10px;font-size:0.85rem">Complete o nível anterior</p>' : ''}
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
-                    `;
-                }).join('')}
-            </div>
+                    </div>
+                `;
+            }).join('')}
         `;
-        
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
     }
@@ -1358,9 +1295,7 @@
             $('timeDisplay').textContent = '♾️ Zen';
         } else {
             $('zenBadge').style.display = 'none';
-            if (startTime) {
-                startTimer();
-            }
+            if (startTime) startTimer();
         }
         showToast(enabled ? '🧘 Modo Zen Ativado' : '⏱️ Cronômetro Ativado', 'success');
         sounds.click();
@@ -1379,47 +1314,34 @@
     window.selectLevel = selectLevel;
     window.toggleZenMode = toggleZenMode;
 
-    // ===== TUTORIAL INTERATIVO =====
     function showTutorial() {
         const overlay = document.createElement('div');
         overlay.className = 'tutorial-overlay';
         overlay.id = 'tutorialOverlay';
-        
         const content = document.createElement('div');
         content.className = 'tutorial-content';
-        
         content.innerHTML = `
             <h2 style="font-size:2rem;margin-bottom:20px">🎯 Como Jogar</h2>
-            
             <div class="tutorial-step">
                 <h3 style="color:var(--primary);margin-bottom:10px">1️⃣ Encontre as Palavras</h3>
                 <p style="color:var(--muted)">Clique na primeira letra e depois na última letra da palavra. As palavras podem estar na horizontal, vertical ou diagonal!</p>
             </div>
-            
             <div class="tutorial-step">
                 <h3 style="color:var(--primary);margin-bottom:10px">2️⃣ Ganhe Pontos</h3>
                 <p style="color:var(--muted)">Encontre palavras rapidamente para ganhar bônus de tempo. Use menos dicas para mais pontos!</p>
             </div>
-            
             <div class="tutorial-step">
                 <h3 style="color:var(--primary);margin-bottom:10px">3️⃣ Faça Combos</h3>
                 <p style="color:var(--muted)">Encontre palavras em menos de 5 segundos uma da outra para ativar combos e ganhar pontos extras!</p>
             </div>
-            
             <div class="tutorial-step">
                 <h3 style="color:var(--primary);margin-bottom:10px">⌨️ Atalhos do Teclado</h3>
-                <p style="color:var(--muted)">
-                    <strong>ESC</strong> - Pausar/Retomar<br>
-                    <strong>H</strong> - Usar Dica<br>
-                    <strong>F</strong> - Tela Cheia
-                </p>
+                <p style="color:var(--muted)"><strong>ESC</strong> - Pausar/Retomar<br><strong>H</strong> - Usar Dica<br><strong>F</strong> - Tela Cheia</p>
             </div>
-            
             <button onclick="closeTutorial()" style="margin-top:20px;background:linear-gradient(135deg, #10b981 0%, #059669 100%);color:white;padding:15px 40px;border-radius:12px;font-size:1.1rem;border:none;cursor:pointer;width:100%">
                 ✅ Entendi, Vamos Jogar!
             </button>
         `;
-        
         overlay.appendChild(content);
         document.body.appendChild(overlay);
     }
@@ -1432,7 +1354,6 @@
 
     window.closeTutorial = closeTutorial;
 
-    // ===== FUNÇÕES UTILITÁRIAS =====
     function nowLocalDateTimeForInput(){
       const d = new Date();
       const off = d.getTimezoneOffset();
@@ -1448,15 +1369,11 @@
           headers: { 'Content-Type': 'application/json' }, 
           body: JSON.stringify(data)
         });
-        
         const result = await response.json();
         console.log('Resposta recebida:', result);
         return result;
       } catch (error) {
         console.error('Erro ao enviar dados:', error);
-        if(data.type !== 'getLeaderboard') {
-          showToast('❌ Erro ao comunicar com o servidor', 'error');
-        }
         return { status: 'error', message: error.message };
       }
     }
@@ -1492,6 +1409,7 @@
 
     async function loadLeaderboard(){
         $('leaderboardStatus').textContent = '⏳ Carregando ranking...';
+        $('leaderboardList').innerHTML = '<li class="leaderboard-item">Carregando...</li>';
         
         try {
             const response = await fetch(APPS_SCRIPT_URL + '?type=getLeaderboard');
@@ -1509,13 +1427,13 @@
                     </li>
                 `).join('');
             } else {
-                $('leaderboardStatus').textContent = 'Aguardando primeiros jogadores...';
-                $('leaderboardList').innerHTML = '<li class="leaderboard-item">Nenhum jogador ainda. Seja o primeiro!</li>';
+                $('leaderboardStatus').textContent = '🎮 Nenhum jogador ainda';
+                $('leaderboardList').innerHTML = '<li class="leaderboard-item">Seja o primeiro a completar um nível!</li>';
             }
         } catch (error) {
             console.error('Erro ao carregar ranking:', error);
-            $('leaderboardStatus').textContent = '⚠️ Erro ao carregar ranking';
-            $('leaderboardList').innerHTML = '<li class="leaderboard-item">Erro ao carregar dados. Tente novamente.</li>';
+            $('leaderboardStatus').textContent = '📊 Ranking em Construção';
+            $('leaderboardList').innerHTML = '<li class="leaderboard-item">O ranking será atualizado após os primeiros jogos. Continue jogando!</li>';
         }
     }
 
@@ -1534,7 +1452,6 @@
         container.className = 'particles';
         container.style.left = x + 'px';
         container.style.top = y + 'px';
-        
         for(let i = 0; i < 12; i++){
             const particle = document.createElement('div');
             particle.className = 'particle';
@@ -1545,7 +1462,6 @@
             particle.style.background = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][Math.floor(Math.random() * 5)];
             container.appendChild(particle);
         }
-        
         document.body.appendChild(container);
         setTimeout(() => container.remove(), 1000);
     }
@@ -1570,7 +1486,6 @@
             $('timeDisplay').textContent = '♾️ Zen';
             return;
         }
-        
         if(timerInterval) clearInterval(timerInterval);
         startTime = Date.now() - pausedTime;
         timerInterval = setInterval(() => {
@@ -1590,13 +1505,11 @@
 
     function pauseGame(){
         if(isPaused) return;
-        
         isPaused = true;
         if (!isZenMode) {
             pausedTime = Date.now() - startTime;
             stopTimer();
         }
-        
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay';
         overlay.id = 'pauseOverlay';
@@ -1614,14 +1527,10 @@
 
     function resumeGame(){
         if(!isPaused) return;
-        
         isPaused = false;
         const overlay = $('pauseOverlay');
         if(overlay) overlay.remove();
-        
-        if (!isZenMode) {
-            startTimer();
-        }
+        if (!isZenMode) startTimer();
         $('pauseBtn').textContent = '⏸️ Pausar';
         showToast('▶️ Jogo retomado!', 'success');
         sounds.click();
@@ -1633,29 +1542,23 @@
             sounds.error();
             return;
         }
-        
         const notFound = placedWords.filter(pw => !found.has(pw.word) && !pw.notPlaced);
         if(notFound.length === 0) return;
-        
         const randomWord = notFound[Math.floor(Math.random() * notFound.length)];
         const firstCell = document.querySelector(`.cell[data-r='${randomWord.r}'][data-c='${randomWord.c}']`);
-        
         if(firstCell){
             firstCell.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
             firstCell.style.transform = 'scale(1.3)';
             firstCell.style.color = 'white';
-            
             setTimeout(() => {
                 firstCell.style.background = '';
                 firstCell.style.transform = '';
                 firstCell.style.color = '';
             }, 2000);
-            
             hintsRemaining--;
             $('hintCount').textContent = hintsRemaining;
             showToast(`💡 Dica: Procure por "${randomWord.word}"`, 'warning');
             sounds.click();
-            
             if(hintsRemaining === 0){
                 $('hintBtn').disabled = true;
                 $('hintBtn').style.opacity = '0.5';
@@ -1663,49 +1566,39 @@
         }
     }
 
-    // ===== ATALHOS DE TECLADO =====
     document.addEventListener('keydown', (e) => {
         if(!$('gameCard') || $('gameCard').style.display === 'none') return;
-        
         if(e.key === 'Escape') {
             e.preventDefault();
             if(isPaused) resumeGame();
             else pauseGame();
         }
-        
         if(e.key === 'h' || e.key === 'H') {
             e.preventDefault();
             giveHint();
         }
-        
         if(e.key === 'f' || e.key === 'F') {
             e.preventDefault();
             toggleFullscreen();
         }
     });
 
-    // ===== DETECTAR MUDANÇA DE ABA =====
     document.addEventListener('visibilitychange', () => {
         if(document.hidden && !isPaused && $('gameCard').style.display !== 'none') {
             pauseGame();
         }
     });
 
-    // ===== EVENT LISTENERS =====
     document.addEventListener('DOMContentLoaded', () => {
         console.log('Documento carregado');
         loadTheme();
         loadProgress();
-        
         const soundSaved = localStorage.getItem(SOUND_KEY);
         soundEnabled = soundSaved !== 'false';
         $('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
-        
         $('datetime').value = nowLocalDateTimeForInput();
         updateUIEntries();
         loadLeaderboard();
-
-        // Mostrar tutorial apenas na primeira vez
         if(!localStorage.getItem('tutorial_shown')) {
             setTimeout(showTutorial, 1000);
         }
@@ -1719,37 +1612,22 @@
 
         $('cadForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            console.log('Formulário submetido');
-            
             const nome = $('nome').value.trim();
             const dob = $('dob').value;
             const datetime = $('datetime').value;
-            
-            if(!nome || !dob || !datetime){
-                showToast('⚠️ Preencha todos os campos', 'error');
+            if(!nome || !datetime){
+                showToast('⚠️ Preencha nome e data/hora', 'error');
                 if(soundEnabled) sounds.error();
                 return;
             }
-
-            console.log('Dados do formulário:', {nome, dob, datetime});
-
             const arr = loadEntries();
-            arr.push({nome, dob, datetime});
+            arr.push({nome, dob: dob || 'Não informado', datetime});
             saveEntries(arr);
             updateUIEntries();
-
-            const dataToSend = { 
-                type: 'registerAndGame', 
-                nome, 
-                dob, 
-                datetime 
-            };
-            
+            const dataToSend = { type: 'registerAndGame', nome, dob: dob || 'Não informado', datetime };
             showToast('📤 Enviando dados...', 'warning');
-            
             try {
                 const result = await postData(dataToSend);
-                
                 if(result && result.rowId) {
                     currentRowId = result.rowId;
                     console.log('ID da linha recebido:', currentRowId);
@@ -1757,7 +1635,6 @@
             } catch(error) {
                 console.error('Erro ao enviar dados:', error);
             }
-
             openGame(nome);
             $('cadForm').reset();
             $('datetime').value = nowLocalDateTimeForInput();
@@ -1766,7 +1643,6 @@
         });
 
         $('openGameBtn').addEventListener('click', () => {
-            console.log('Abrindo jogo sem registro');
             openGame('Convidado');
             sounds.click();
         });
@@ -1784,13 +1660,11 @@
             if(isPaused) resumeGame();
             else pauseGame();
         });
-
         $('hintBtn').addEventListener('click', giveHint);
         $('levelsBtn').addEventListener('click', () => {
             showLevelSelector();
             sounds.click();
         });
-        
         $('resetGame').addEventListener('click', () => {
             if(confirm('🔄 Reiniciar o nível atual?')){
                 initGame(currentLevel);
@@ -1802,9 +1676,7 @@
 
     window.resumeGame = resumeGame;
 
-    // ===== FUNÇÕES DO JOGO =====
     function openGame(nome){
-        console.log('Abrindo jogo para:', nome);
         $('gameCard').style.display = 'block';
         currentUserName = nome;
         currentLevel = 0;
@@ -1819,19 +1691,13 @@
         pausedTime = 0;
         isPaused = false;
         sessionStart = Date.now();
-        
-        if (isZenMode) {
-            $('zenBadge').style.display = 'inline-flex';
-        }
-        
+        if (isZenMode) $('zenBadge').style.display = 'inline-flex';
         startTimer();
         initGame(currentLevel);
         displayAchievements();
-        
         setTimeout(() => {
             window.scrollTo({top: document.body.scrollHeight, behavior: 'smooth'});
         }, 100);
-        
         showToast('🎮 Jogo iniciado! Boa sorte!', 'success');
         sounds.levelUp();
     }
@@ -1842,15 +1708,12 @@
         WORDS = level.words;
         $('gameTitle').textContent = level.title;
         $('levelDisplay').textContent = `Nível ${levelIndex + 1}`;
-        
         found.clear();
         selection = null;
         placedWords = [];
         grid = Array.from({length: GRID_SIZE}, () => Array.from({length: GRID_SIZE}, () => ' '));
-        
         const list = WORDS.slice();
         for(const w of list) placeWord(w);
-        
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         for(let r = 0; r < GRID_SIZE; r++){
             for(let c = 0; c < GRID_SIZE; c++){
@@ -1859,13 +1722,11 @@
                 }
             }
         }
-        
         renderGrid();
         renderWords();
         updateFoundCount();
         updateProgressBar();
         updateAccuracy();
-        
         if(levelIndex === 0){
             pausedTime = 0;
             startTimer();
@@ -1876,7 +1737,6 @@
         const w = word.toUpperCase();
         const directions = [[0,1], [1,0], [1,1], [-1,1], [0,-1], [-1,0], [-1,-1], [1,-1]];
         const maxAttempts = 500;
-        
         for(let attempt = 0; attempt < maxAttempts; attempt++){
             const dir = directions[Math.floor(Math.random() * directions.length)];
             const len = w.length;
@@ -1884,9 +1744,7 @@
             const c = Math.floor(Math.random() * GRID_SIZE);
             const endR = r + dir[0] * (len - 1);
             const endC = c + dir[1] * (len - 1);
-            
             if(endR < 0 || endR >= GRID_SIZE || endC < 0 || endC >= GRID_SIZE) continue;
-            
             let ok = true;
             for(let i = 0; i < len; i++){
                 const rr = r + dir[0] * i;
@@ -1897,19 +1755,15 @@
                     break;
                 }
             }
-            
             if(!ok) continue;
-            
             for(let i = 0; i < len; i++){
                 const rr = r + dir[0] * i;
                 const cc = c + dir[1] * i;
                 grid[rr][cc] = w[i];
             }
-            
             placedWords.push({word: w, r, c, dr: dir[0], dc: dir[1], len});
             return true;
         }
-        
         placedWords.push({word: w, notPlaced: true});
         return false;
     }
@@ -1920,7 +1774,6 @@
         const g = document.createElement('div');
         g.className = 'grid';
         g.style.gridTemplateColumns = `repeat(${GRID_SIZE}, auto)`;
-        
         for(let r = 0; r < GRID_SIZE; r++){
             for(let c = 0; c < GRID_SIZE; c++){
                 const cell = document.createElement('div');
@@ -1932,7 +1785,6 @@
                 g.appendChild(cell);
             }
         }
-        
         wrap.appendChild(g);
         refreshHighlights();
     }
@@ -1951,10 +1803,8 @@
 
     function onCellClick(e){
         if(isPaused) return;
-        
         const r = parseInt(e.currentTarget.dataset.r, 10);
         const c = parseInt(e.currentTarget.dataset.c, 10);
-        
         if(!selection){
             selection = {r1: r, c1: c};
             sounds.click();
@@ -1964,7 +1814,6 @@
             checkSelection();
             selection = null;
         }
-        
         refreshHighlights();
     }
 
@@ -1972,24 +1821,20 @@
         document.querySelectorAll('.cell').forEach(el => {
             el.classList.remove('selecting', 'found');
         });
-        
         if(selection){
             const s = selection;
             const start = document.querySelector(`.cell[data-r='${s.r1}'][data-c='${s.c1}']`);
             if(start) start.classList.add('selecting');
         }
-        
         for(const f of found){
             const pw = placedWords.find(p => p.word === f);
             if(!pw || pw.notPlaced) continue;
-            
             for(let i = 0; i < pw.len; i++){
                 const rr = pw.r + pw.dr * i;
                 const cc = pw.c + pw.dc * i;
                 const el = document.querySelector(`.cell[data-r='${rr}'][data-c='${cc}']`);
                 if(el) el.classList.add('found');
             }
-            
             const wel = $('word_' + pw.word);
             if(wel) wel.classList.add('found');
         }
@@ -1997,23 +1842,19 @@
 
     function checkSelection(){
         if(!selection || selection.r2 === undefined) return;
-        
         totalSelections++;
-        
         const r1 = selection.r1, c1 = selection.c1, r2 = selection.r2, c2 = selection.c2;
         const dr = Math.sign(r2 - r1);
         const dc = Math.sign(c2 - c1);
         const lenR = Math.abs(r2 - r1) + 1;
         const lenC = Math.abs(c2 - c1) + 1;
         const len = Math.max(lenR, lenC);
-        
         if(lenR !== 1 && lenC !== 1 && lenR !== lenC){
             flashSelection(r1, c1, r2, c2);
             updateAccuracy();
             sounds.error();
             return;
         }
-
         let s = '';
         for(let i = 0; i < len; i++){
             const rr = r1 + dr * i;
@@ -2021,24 +1862,19 @@
             if(rr < 0 || rr >= GRID_SIZE || cc < 0 || cc >= GRID_SIZE) break;
             s += grid[rr][cc];
         }
-        
         const rev = s.split('').reverse().join('');
         const matched = placedWords.find(p => (p.word === s || p.word === rev) && !found.has(p.word));
-        
         if(matched){
             correctSelections++;
             found.add(matched.word);
-            
             const firstCell = document.querySelector(`.cell[data-r='${matched.r}'][data-c='${matched.c}']`);
             if(firstCell){
                 const rect = firstCell.getBoundingClientRect();
                 createParticles(rect.left + rect.width / 2, rect.top + rect.height / 2);
             }
-            
             checkCombo();
             const wordPoints = 100 + (matched.word.length * 10);
             updateScore(wordPoints);
-            
             updateFoundCount();
             updateProgressBar();
             updateAccuracy();
@@ -2058,7 +1894,6 @@
         const dc = Math.sign(c2 - c1);
         const len = Math.max(Math.abs(r2 - r1) + 1, Math.abs(c2 - c1) + 1);
         const cells = [];
-        
         for(let i = 0; i < len; i++){
             const rr = r1 + dr * i;
             const cc = c1 + dc * i;
@@ -2068,7 +1903,6 @@
                 cells.push(el);
             }
         }
-        
         setTimeout(() => cells.forEach(el => el.classList.remove('selecting')), 400);
     }
 
@@ -2093,11 +1927,9 @@
                 unlockedLevels = currentLevel + 1;
                 saveProgress();
             }
-            
             showToast(`🎉 Nível ${currentLevel} completo! Partiu Nível ${currentLevel + 1}!`, 'success');
             createConfetti();
             sounds.levelUp();
-            
             setTimeout(() => {
                 initGame(currentLevel);
                 hintsRemaining = 3;
@@ -2113,7 +1945,6 @@
             createConfetti();
             sounds.levelUp();
             stopTimer();
-            
             setTimeout(() => {
                 showStatsModal();
             }, 2000);
@@ -2124,10 +1955,8 @@
         if(found.size >= placedWords.length){
             const timeTakenSeconds = isZenMode ? 0 : ((Date.now() - startTime) / 1000);
             const levelScore = calculateScore(timeTakenSeconds, 3 - hintsRemaining, currentLevel);
-            
             updateScore(levelScore);
             checkAchievements();
-            
             saveGameHistory({
                 level: currentLevel,
                 playerName: currentUserName,
@@ -2138,7 +1967,6 @@
                 zenMode: isZenMode,
                 score: gameScore
             });
-            
             if(currentLevel === 0 && currentRowId && !isZenMode){
                 const gameData = {
                     type: 'gameFinished',
@@ -2148,19 +1976,16 @@
                     playerName: currentUserName,
                     score: gameScore
                 };
-                
                 console.log('Enviando resultado do jogo:', gameData);
                 postData(gameData).then(() => {
                     loadLeaderboard();
                 });
                 currentRowId = null;
             }
-            
             setTimeout(moveToNextLevel, 1000);
         }
     }
 
-    // ===== ANALYTICS =====
     function trackGameMetrics() {
         const playTime = (Date.now() - sessionStart) / 1000;
         const metrics = {
@@ -2172,13 +1997,14 @@
             totalScore: totalScore,
             level: currentLevel
         };
-        
         console.log('Métricas do jogo:', metrics);
         postData(metrics);
     }
 
-    // Enviar métricas ao fechar a página
     window.addEventListener('beforeunload', trackGameMetrics);
   </script>
 </body>
-</html>
+</html>--muted);font-size:0.9rem;line-height:1.5">
+                    Clique na primeira letra e depois na última para selecionar. Funciona em linhas, colunas e diagonais!
+                </p>
+                <p style="margin-top:8px;color:var(
