@@ -883,21 +883,30 @@
     const THEME_KEY = 'dark_mode';
     const PROGRESS_KEY = 'game_progress';
     const SOUND_KEY = 'sound_enabled';
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx3ZPPBR4VWrw2KD_3gl57nhsijv4EWpRnETeLY18p-o9a2DuUv1gw1AJ1AK0Bc5k4z/exec';
+    // ⚠️ SUBSTITUA ESTE PLACEHOLDER PELO SEU URL DE IMPLANTAÇÃO (Apps Script URL)
+    const APPS_SCRIPT_URL = 'SEU_NOVO_URL_DE_IMPLANTAÇÃO_AQUI'; 
 
     const GAME_LEVELS = [
         { title: 'Infantil 1: Desenhos Animados', size: 10, words: ['MICKEY', 'ELSA', 'BOB', 'PEPPA', 'SONIC', 'PIKACHU', 'DORA', 'HULK'], difficulty: 'Infantil', color: '#ec4899', icon: '🎨', category: 'infantil' },
         { title: 'Infantil 2: Super Heróis', size: 10, words: ['BATMAN', 'HOMEMARANHA', 'SUPERMAN', 'CAPITAO', 'MULHERMARAVILHA', 'FLASH', 'THOR', 'PANTERA'], difficulty: 'Infantil', color: '#ec4899', icon: '🦸', category: 'infantil' },
+        { title: 'Infantil 3: Contos de Fadas', size: 11, words: ['CINDERELA', 'BRANCADENEVE', 'ARIEL', 'AURORA', 'FERA', 'PRINCESA', 'DRAGAO', 'CASTELO', 'MAGIA'], difficulty: 'Infantil', color: '#ec4899', icon: '👸', category: 'infantil' },
         { title: 'Brasil 1: Forças Armadas', size: 12, words: ['BRASIL', 'AMAZONAS', 'MANAUS', 'POLICIA', 'SEGURANCA', 'FORCA', 'PATENTE', 'ALERTA', 'VIATURA', 'PATRIA'], difficulty: 'Fácil', color: '#10b981', icon: '🛡️', category: 'brasil' },
         { title: 'Brasil 2: Estados', size: 12, words: ['ACRE', 'BAHIA', 'CEARA', 'GOIAS', 'PARANA', 'PERNAMBUCO', 'RIOGRANDE', 'SERGIPE', 'TOCANTINS', 'MARANHAO'], difficulty: 'Fácil', color: '#10b981', icon: '🇧🇷', category: 'brasil' },
+        { title: 'Brasil 3: Culinária', size: 13, words: ['FEIJOADA', 'ACARAJÉ', 'COXINHA', 'PÃODEQUEIJO', 'MOQUECA', 'BRIGADEIRO', 'FAROFA', 'TAPIOCA', 'AÇAÍ', 'CHURRASCO'], difficulty: 'Fácil', color: '#10b981', icon: '🍲', category: 'brasil' },
         { title: 'Tecnologia 1: Programação', size: 14, words: ['PROGRAMA', 'ALGORITMO', 'COMPUTADOR', 'INTERNET', 'HARDWARE', 'SOFTWARE', 'APLICACAO', 'SERVIDOR', 'SEGURANCA', 'ENGENHEIRO', 'DATABASE', 'PYTHON'], difficulty: 'Médio', color: '#f59e0b', icon: '💻', category: 'tecnologia' },
         { title: 'Tecnologia 2: Redes Sociais', size: 14, words: ['FACEBOOK', 'INSTAGRAM', 'TWITTER', 'TIKTOK', 'YOUTUBE', 'WHATSAPP', 'TELEGRAM', 'LINKEDIN', 'PINTEREST', 'SNAPCHAT', 'REDDIT', 'DISCORD'], difficulty: 'Médio', color: '#f59e0b', icon: '📱', category: 'tecnologia' },
+        { title: 'Tecnologia 3: Inovação', size: 15, words: ['INTELIGENCIA', 'ARTIFICIAL', 'ROBOTICA', 'DRONES', 'NANOTECNOLOGIA', 'CRIPTO', 'BLOCKCHAIN', 'REALIDADE', 'VIRTUAL', 'AUTOMAÇÃO', 'BIGDATA', 'NUVEM'], difficulty: 'Médio', color: '#f59e0b', icon: '🚀', category: 'tecnologia' },
         { title: 'Mundo 1: Cidades', size: 16, words: ['BRASILIA', 'SAOPAULO', 'RIODEJANEIRO', 'PARIS', 'TOKIO', 'LONDRES', 'NYORQUE', 'SIDNEY', 'PEQUIM', 'MOSCOU', 'DUBAI', 'BERLIM', 'LISBOA', 'MADRI'], difficulty: 'Difícil', color: '#ef4444', icon: '🌍', category: 'mundo' },
         { title: 'Mundo 2: Países', size: 16, words: ['BRASIL', 'ARGENTINA', 'PORTUGAL', 'ESPANHA', 'ALEMANHA', 'ITALIA', 'FRANCA', 'JAPAO', 'CHINA', 'AUSTRALIA', 'CANADA', 'MEXICO', 'INDIA', 'RUSSIA'], difficulty: 'Difícil', color: '#ef4444', icon: '🗺️', category: 'mundo' },
+        { title: 'Mundo 3: Idiomas', size: 17, words: ['PORTUGUES', 'INGLES', 'ESPANHOL', 'FRANCES', 'ALEMAO', 'ITALIANO', 'RUSSO', 'CHINES', 'JAPONES', 'ARABE', 'COREANO', 'GREGO', 'LATIM', 'HEBRAICO'], difficulty: 'Difícil', color: '#ef4444', icon: '🗣️', category: 'mundo' },
+        { title: 'Mundo 4: Capitais', size: 17, words: ['LONDRES', 'PARIS', 'ROMA', 'BERLIM', 'TOKIO', 'PEQUIM', 'MOSCOU', 'OTTAWA', 'MEXICO', 'LIMA', 'SANTIAGO', 'BUENOSAIRES', 'CANBERRA', 'PRETORIA'], difficulty: 'Difícil', color: '#ef4444', icon: '🏙️', category: 'mundo' },
         { title: 'Natureza 1: Animais', size: 18, words: ['ELEFANTE', 'RINOCERONTE', 'HIPOPOTAMO', 'GIRAFA', 'LEOPARDO', 'CROCODILO', 'TUBARAO', 'AGUIA', 'PINGUIM', 'GOLFINHO', 'BORBOLETA', 'FORMIGA', 'CACHORRO', 'TARTARUGA'], difficulty: 'Muito Difícil', color: '#8b5cf6', icon: '🦁', category: 'natureza' },
         { title: 'Natureza 2: Flores', size: 18, words: ['ORQUIDEA', 'GIRASSOL', 'MARGARIDA', 'TULIPA', 'JASMIM', 'LAVANDA', 'HORTENCIA', 'AZALEIA', 'BEGONIA', 'CRISANTEMO', 'DALIA', 'GARDENIA', 'HIBISCO', 'PETUNIA'], difficulty: 'Muito Difícil', color: '#8b5cf6', icon: '🌺', category: 'natureza' },
+        { title: 'Natureza 3: Clima', size: 19, words: ['TEMPESTADE', 'FURACAO', 'TSUNAMI', 'TERREMOTO', 'VULCAO', 'GEADA', 'TROVOADA', 'VENTANIA', 'CHUVA', 'SOL', 'NEVE', 'GRANIZO', 'NUVEM', 'ARCOIRIS', 'UMIDADE'], difficulty: 'Muito Difícil', color: '#8b5cf6', icon: '☀️', category: 'natureza' },
         { title: 'Extremo 1: Ciências', size: 20, words: ['ASTRONOMIA', 'BIOLOGIA', 'QUIMICA', 'FISICA', 'MATEMATICA', 'GEOLOGIA', 'ECOLOGIA', 'GENETICA', 'NEUROCIENCIA', 'PALEONTOLOGIA', 'ZOOLOGIA', 'BOTANICA', 'MICROBIOLOGIA', 'ANTROPOLOGIA', 'ARQUEOLOGIA'], difficulty: 'Extremo', color: '#dc2626', icon: '🔬', category: 'extremo' },
-        { title: 'Extremo 2: Profissões', size: 20, words: ['ENGENHEIRO', 'ARQUITETO', 'ADVOGADO', 'MEDICO', 'ENFERMEIRO', 'PROFESSOR', 'DENTISTA', 'VETERINARIO', 'PSICOLOGO', 'FARMACEUTICO', 'FISIOTERAPEUTA', 'NUTRICIONISTA', 'CONTADOR', 'PROGRAMADOR', 'DESIGNER'], difficulty: 'Extremo', color: '#dc2626', icon: '💼', category: 'extremo' }
+        { title: 'Extremo 2: Profissões', size: 20, words: ['ENGENHEIRO', 'ARQUITETO', 'ADVOGADO', 'MEDICO', 'ENFERMEIRO', 'PROFESSOR', 'DENTISTA', 'VETERINARIO', 'PSICOLOGO', 'FARMACEUTICO', 'FISIOTERAPEUTA', 'NUTRICIONISTA', 'CONTADOR', 'PROGRAMADOR', 'DESIGNER'], difficulty: 'Extremo', color: '#dc2626', icon: '💼', category: 'extremo' },
+        { title: 'Extremo 3: Química', size: 21, words: ['ELETRONEGATIVIDADE', 'ESTEQUIOMETRIA', 'TERMODINAMICA', 'FOTOQUIMICA', 'CRISTALOGRAFIA', 'CROMATOGRAFIA', 'POLIMERO', 'CATALISADOR', 'REACAO', 'ATOMO', 'MOLECULA', 'ISOTOPO', 'ELETRON', 'PROTON', 'NEUTRO'], difficulty: 'Extremo', color: '#dc2626', icon: '🧪', category: 'extremo' },
+        { title: 'Extremo 4: Geopolítica', size: 21, words: ['GEOPOLITICA', 'DIPLOMACIA', 'SOBERANIA', 'NACIONALISMO', 'GLOBALIZACAO', 'IDEOLOGIA', 'TERRORISMO', 'GUERRA', 'PAZ', 'ONU', 'OTAN', 'UNIAOEUROPEIA', 'MERCOSUL', 'CONFLITO', 'ACORDO'], difficulty: 'Extremo', color: '#dc2626', icon: '🌐', category: 'extremo' }
     ];
 
     let GRID_SIZE = GAME_LEVELS[0].size;
@@ -1254,7 +1263,7 @@
                 return `
                     <div class="category-section">
                         <div class="category-title">${cat.icon} ${cat.name}</div>
-                        <div class="level-grid" style="grid-template-columns:repeat(2, 1fr)">
+                        <div class="level-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr))">
                             ${cat.levels.map(level => {
                                 const isLocked = level.index >= unlockedLevels;
                                 const difficultyClass = level.difficulty.toLowerCase().replace(/\s+/g, '-');
@@ -1363,6 +1372,11 @@
 
     async function postData(data) {
       try {
+        if (APPS_SCRIPT_URL === 'SEU_NOVO_URL_DE_IMPLANTAÇÃO_AQUI') {
+            console.warn('Apps Script URL não configurado. Ignorando envio para o Google Sheets.');
+            showToast('⚠️ Erro: URL do Apps Script não configurado. Dados não enviados.', 'error');
+            return { status: 'error', message: 'URL não configurado' };
+        }
         console.log('Enviando dados:', data);
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
@@ -1411,6 +1425,12 @@
         $('leaderboardStatus').textContent = '⏳ Carregando ranking...';
         $('leaderboardList').innerHTML = '<li class="leaderboard-item">Carregando...</li>';
         
+        if (APPS_SCRIPT_URL === 'SEU_NOVO_URL_DE_IMPLANTAÇÃO_AQUI') {
+             $('leaderboardStatus').textContent = '⚠️ Ranking Indisponível (URL não configurado)';
+             $('leaderboardList').innerHTML = '<li class="leaderboard-item">Configure o Apps Script URL para ver o ranking.</li>';
+             return;
+        }
+
         try {
             const response = await fetch(APPS_SCRIPT_URL + '?type=getLeaderboard');
             const data = await response.json();
@@ -2004,7 +2024,4 @@
     window.addEventListener('beforeunload', trackGameMetrics);
   </script>
 </body>
-</html>--muted);font-size:0.9rem;line-height:1.5">
-                    Clique na primeira letra e depois na última para selecionar. Funciona em linhas, colunas e diagonais!
-                </p>
-                <p style="margin-top:8px;color:var(
+</html>
